@@ -10,7 +10,8 @@
     "test": "node tests/scene.smoke.mjs && node tests/page.check.mjs",
     "test:scene": "node tests/scene.smoke.mjs",
     "test:page": "node tests/page.check.mjs",
-    "shots": "node tests/page.check.mjs --shots"
+    "shots": "node tests/page.check.mjs --shots",
+    "test:live": "node tests/page.check.mjs --url=https://alexandreschoukroun.github.io"
   },
   "devDependencies": {
     "three": "0.169.0",
@@ -21,5 +22,6 @@
     "last 2 Firefox versions",
     "last 2 Safari versions",
     "last 2 Edge versions"
-  ]
+  ],
+  "homepage": "https://alexandreschoukroun.github.io"
 }

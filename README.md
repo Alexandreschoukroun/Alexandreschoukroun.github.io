@@ -178,8 +178,27 @@ remplacez-les par les profils réels.
 
 ## Mise en ligne
 
-N'importe quel hébergeur statique convient (Netlify, Vercel, ou nginx sur le
-VPS). Servez la racine du dépôt telle quelle.
+En production sur **GitHub Pages** : <https://alexandreschoukroun.github.io>
+
+Le dépôt s'appelle `Alexandreschoukroun.github.io`, ce qui est la seule forme
+servie à la racine du domaine plutôt que dans un sous-chemin. Pages est
+configuré sur la branche `main`, dossier racine. Un `git push` suffit à
+déployer, la reconstruction prend une vingtaine de secondes.
+
+`.nojekyll` désactive le traitement Jekyll, actif par défaut sur Pages, pour
+que les fichiers soient servis tels quels.
+
+```bash
+git push               # deploie
+npm run test:live      # controle le site en ligne dans un vrai navigateur
+```
+
+`npm run test:live` lance exactement la même suite que `test:page`, mais contre
+l'URL publique. C'est ce qui distingue « le serveur répond » de « la page
+fonctionne » : il charge la scène, lit la console et teste la traduction.
+
+Tout autre hébergeur statique conviendrait aussi (Netlify, Vercel, ou nginx sur
+le VPS) : il suffit de servir la racine du dépôt.
 
 Optimisation suivante, si le site doit tenir sans réseau tiers : héberger les
 deux familles de caractères et `three.module.js` en local plutôt que par CDN.

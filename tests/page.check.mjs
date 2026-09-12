@@ -18,6 +18,10 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = 5399;
 const SHOTS = process.argv.includes('--shots');
 
+// --url permet de controler le site deja en ligne au lieu du serveur local.
+const urlArg = process.argv.find((a) => a.startsWith('--url='));
+const TARGET = urlArg ? urlArg.slice(6).replace(/\/$/, '') : null;
+
 const CHROME = [
   'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
   'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
@@ -49,7 +53,9 @@ const check = (name, cond, extra = '') => {
   return cond;
 };
 
-const server = await serve();
+const server = TARGET ? null : await serve();
+const BASE = TARGET || `http://127.0.0.1:${PORT}`;
+if (TARGET) console.log(`cible : ${TARGET}`);
 const browser = await puppeteer.launch({
   executablePath: CHROME,
   headless: 'new',
@@ -74,7 +80,7 @@ page.on('pageerror', (e) => errors.push('pageerror: ' + (e.message || e)));
 page.on('requestfailed', (r) => errors.push(`requete echouee: ${r.url()} (${r.failure()?.errorText})`));
 
 console.log('\n-- chargement --');
-await page.goto(`http://127.0.0.1:${PORT}/`, { waitUntil: 'networkidle2', timeout: 45000 });
+await page.goto(`${BASE}/`, { waitUntil: 'networkidle2', timeout: 45000 });
 
 // La scene est chargee en requestIdleCallback : on lui laisse le temps.
 await page.waitForFunction(
@@ -132,7 +138,7 @@ const probe = await page.evaluate(async () => {
     out.threeOk = true;
   } catch (e) { out.threeError = String((e && e.message) || e); }
   try {
-    const m = await import('/scripts/scene/index.js');
+    const m = await import('./scripts/scene/index.js');
     out.sceneModuleOk = typeof m.createScene === 'function';
   } catch (e) { out.sceneImportError = String((e && e.message) || e); }
   return out;
@@ -215,7 +221,7 @@ if (SHOTS) {
 }
 
 await browser.close();
-server.close();
+if (server) server.close();
 
 console.log(fails === 0 ? '\nPAGE OK\n' : `\n${fails} ECHEC(S)\n`);
 process.exit(fails === 0 ? 0 : 1);
