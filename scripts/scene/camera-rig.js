@@ -35,6 +35,21 @@ const KEYS = [
 
 const smooth = (x) => x * x * (3 - 2 * x);
 
+const REF_ASPECT = 1.6;   // proportion pour laquelle les fov ont ete regles
+
+/**
+ * Le fov de three.js est VERTICAL. Sur un viewport en portrait, un fov vertical
+ * constant retrecit le champ horizontal et rogne la scene sur les cotes. On
+ * recalcule donc le fov vertical pour conserver le champ HORIZONTAL de
+ * reference, plafonne pour eviter une distorsion de grand angle.
+ */
+export function fitFov(fov, aspect) {
+  if (!aspect || aspect >= REF_ASPECT) return fov;
+  const tanHalfH = Math.tan((fov * Math.PI) / 360) * REF_ASPECT;
+  const v = (Math.atan(tanHalfH / aspect) * 360) / Math.PI;
+  return Math.min(76, v);
+}
+
 const _a = new THREE.Vector3();
 const _b = new THREE.Vector3();
 const _dir = new THREE.Vector3();
@@ -81,7 +96,7 @@ export function placeCamera(camera, p) {
   const s = sampleKeys(p);
   camera.position.copy(s.pos);
   camera.lookAt(s.look);
-  camera.fov = s.fov;
+  camera.fov = fitFov(s.fov, camera.aspect);
   camera.updateProjectionMatrix();
   camera.updateMatrixWorld(true);
   return s;
@@ -121,7 +136,7 @@ export function createRig(camera) {
       const s = sampleKeys(eased, sample);
       pos.copy(s.pos);
       look.copy(s.look);
-      const fov = s.fov;
+      const fov = fitFov(s.fov, camera.aspect);
 
       // Respiration : presente dans le heros, elle disparait des qu'on avance.
       const idle = Math.max(0, 1 - eased * 4);

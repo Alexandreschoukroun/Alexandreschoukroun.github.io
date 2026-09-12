@@ -52,8 +52,20 @@
   transition: color var(--dur-2) var(--ease), border-color var(--dur-2) var(--ease);
 }
 .nav__links a:hover, .nav__links a[aria-current="true"] { color: var(--fg); border-bottom-color: var(--accent); }
-@media (max-width: 720px) { .nav__links a[data-optional] { display: none; } }
-@media (max-width: 420px) { .nav__name { font-size: .8rem; } }
+/* La barre porte le nom, les liens et DEUX bascules. Elle se degarnit en
+   trois paliers plutot que de deborder : a 860 les liens secondaires, a 620
+   tous sauf Contact, a 380 le nom passe aux initiales. */
+@media (max-width: 860px) { .nav__links a[data-optional] { display: none; } }
+@media (max-width: 620px) {
+  .nav__links a:not([data-keep]) { display: none; }
+  .nav__in { gap: var(--s-3); }
+  .nav__right { gap: var(--s-3); }
+  .nav__name { font-size: .78rem; }
+}
+@media (max-width: 380px) {
+  .nav__name { font-size: 0; }
+  .nav__name::after { content: "A. Schoukroun"; font-size: .78rem; }
+}
 
 /* --- Rythme des sections ---------------------------------------------- */
 .section { padding-block: clamp(var(--s-8), 11vh, var(--s-10)); position: relative; }
@@ -93,7 +105,7 @@
 @media (max-width: 860px) {
   .stage__viz { position: relative; top: auto; height: 56dvh; }
   .stage__flow { margin-top: 0; }
-  .stage__panel { min-height: auto; padding-block: var(--s-8); }
+  .stage__panel { min-height: auto; padding-block: var(--s-7); }
   .stage__scrim--l { background: linear-gradient(to top, var(--ink-900) 0%, transparent 30%); }
   .stage__scrim--r { display: none; }
 }

@@ -30,9 +30,10 @@ laissent donc une page complète, jamais une page blanche.
 ```bash
 npm install            # three et puppeteer-core, pour les tests seulement
 npm test               # les deux suites
-npm run test:scene     # geometrie, machine a etats, cadrage (hors navigateur)
-npm run test:page      # vrai Chrome : erreurs console, scene, traduction
-npm run shots          # idem, plus une capture par plan dans tests/shots/
+npm run test:scene       # geometrie, machine a etats, cadrage (hors navigateur)
+npm run test:page        # vrai Chrome : erreurs console, scene, traduction
+npm run test:responsive  # 7 largeurs, de 375 a 1440
+npm run shots            # captures des plans dans tests/shots/
 ```
 
 `test:page` pilote le Chrome deja installe via `puppeteer-core`, donc rien a
@@ -131,6 +132,30 @@ non par le HTML, il ecoute donc l'evenement `lang:change`.
 Le test de page verifie que **toute cle posee dans le HTML existe dans le
 dictionnaire**, et qu'aucune entree du dictionnaire ne sert a rien. Chercher
 des accents residuels ne marche pas : Beziers et Baccalaureat en gardent.
+
+## Responsive
+
+`test:responsive` ouvre la page a sept largeurs, de l'iPhone SE au bureau, et
+verifie a chacune : aucun debordement horizontal, aucun element hors cadre,
+navigation sur une seule ligne, titre en trois lignes maximum.
+
+Deux points meritent une explication, parce qu'ils ne se devinent pas.
+
+**La barre se degarnit en trois paliers.** Elle porte le nom, les liens et deux
+bascules, ce qui ne tient pas sous 620 px. A 860 les liens secondaires
+disparaissent, a 620 tous sauf Contact, a 380 le nom passe aux initiales.
+Sans ca la bascule de theme sortait de l'ecran.
+
+**Les zones tactiles sont etendues par un pseudo-element**, pas par une marge
+interieure. Les liens portent leur soulignement en degrade de fond : une marge
+interieure le decalerait. Le test ne mesure donc pas la boite de l'element mais
+POINTE les quatre coins d'un carre de 24 px, ce qui mesure la zone reellement
+cliquable. Le critere n'est verifie que sur les viewports tactiles.
+
+**Le fov de la camera est vertical.** En portrait, un fov constant retrecit le
+champ horizontal et rognait la carte sur les cotes. `fitFov` recalcule le fov
+vertical pour conserver le champ horizontal de reference, plafonne a 76 degres
+pour eviter la distorsion de grand angle.
 
 ## Contraste
 

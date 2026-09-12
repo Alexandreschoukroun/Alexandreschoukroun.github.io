@@ -167,3 +167,16 @@
   background: color-mix(in srgb, var(--accent-ink) 14%, transparent);
   padding: .08em .35em;
 }
+
+/* --- Zone tactile (WCAG 2.2, 24x24 minimum) ---------------------------- */
+@media (pointer: coarse) {
+  .link, .nav__links a, .nav__name, .card__meta a { position: relative; }
+  .link::after,
+  .nav__links a::after,
+  .nav__name::after,
+  .card__meta a::after {
+    content: ""; position: absolute; inset: -9px -6px;
+  }
+  /* Le nom en tres petit ecran porte deja un ::after de contenu. */
+  @media (max-width: 380px) { .nav__name::after { position: static; inset: auto; } }
+}
