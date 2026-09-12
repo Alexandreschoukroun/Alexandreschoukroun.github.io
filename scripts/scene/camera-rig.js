@@ -47,7 +47,32 @@ export function fitFov(fov, aspect) {
   if (!aspect || aspect >= REF_ASPECT) return fov;
   const tanHalfH = Math.tan((fov * Math.PI) / 360) * REF_ASPECT;
   const v = (Math.atan(tanHalfH / aspect) * 360) / Math.PI;
-  return Math.min(76, v);
+  return Math.min(FOV_MAX, v);
+}
+
+const FOV_MAX = 76;   // au-dela, la distorsion de grand angle se voit
+
+/**
+ * Adapte le cadrage a la proportion du viewport, en deux temps.
+ *
+ * On ouvre d'abord le fov vertical, mais on le plafonne : un plein ecran de
+ * telephone a une proportion de 0,46, ou la compensation par le seul fov
+ * demanderait plus de 100 degres et deformerait toute la scene. Ce qui reste
+ * a rattraper est donc obtenu en RECULANT la camera, ce qui ne coute aucune
+ * distorsion. Le champ horizontal redevient celui du bureau.
+ *
+ * Modifie `pos` en place et pose le fov sur la camera.
+ */
+export function fitCamera(camera, fovBase, pos, look) {
+  const aspect = camera.aspect || REF_ASPECT;
+  const fov = fitFov(fovBase, aspect);
+
+  const wanted = Math.tan((fovBase * Math.PI) / 360) * REF_ASPECT;
+  const got = Math.tan((fov * Math.PI) / 360) * aspect;
+  if (got > 1e-6 && got < wanted - 1e-4) {
+    pos.sub(look).multiplyScalar(Math.min(3, wanted / got)).add(look);
+  }
+  return fov;
 }
 
 const _a = new THREE.Vector3();
@@ -94,9 +119,10 @@ export function sampleKeys(p, out = { pos: new THREE.Vector3(), look: new THREE.
  */
 export function placeCamera(camera, p) {
   const s = sampleKeys(p);
+  const fov = fitCamera(camera, s.fov, s.pos, s.look);
   camera.position.copy(s.pos);
   camera.lookAt(s.look);
-  camera.fov = fitFov(s.fov, camera.aspect);
+  camera.fov = fov;
   camera.updateProjectionMatrix();
   camera.updateMatrixWorld(true);
   return s;
@@ -136,7 +162,7 @@ export function createRig(camera) {
       const s = sampleKeys(eased, sample);
       pos.copy(s.pos);
       look.copy(s.look);
-      const fov = fitFov(s.fov, camera.aspect);
+      const fov = fitCamera(camera, s.fov, pos, look);
 
       // Respiration : presente dans le heros, elle disparait des qu'on avance.
       const idle = Math.max(0, 1 - eased * 4);

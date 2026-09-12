@@ -16,7 +16,19 @@
 .hero__lead { max-width: 44ch; margin-bottom: var(--s-6); }
 .hero__cta { display: flex; flex-wrap: wrap; gap: var(--s-3); }
 @media (max-width: 1080px) { .hero__in { grid-column: 1 / 9; } }
-@media (max-width: 860px)  { .hero__in { padding-top: var(--s-6); } }
+@media (max-width: 860px) {
+  /* Le panneau porte deja sa marge et aligne en bas : toute hauteur ajoutee
+     ici pousse le bouton d'appel sous le pli. */
+  .hero__in { padding-top: 0; }
+  .hero h1 { margin-bottom: var(--s-4); }
+  .hero__lead { max-width: none; margin-bottom: var(--s-5); }
+}
+/* Petits telephones : on comprime pour garder le bouton visible sans defiler. */
+@media (max-width: 620px) and (max-height: 720px) {
+  .hero__eyebrow { margin-bottom: var(--s-2); }
+  .hero__lead { font-size: .92rem; margin-bottom: var(--s-4); }
+  .hero h1 { margin-bottom: var(--s-3); }
+}
 
 /* ------------------------------ 2. Chapitres systeme (colonne opposee) */
 .chap__in {
@@ -166,6 +178,7 @@
    canvas cesse d'etre collant et les panneaux reprennent une hauteur libre,
    sinon la page offre cinq ecrans de vide a faire defiler.               */
 :root[data-file] .stage__viz { position: relative; height: 46dvh; top: 0; }
+:root[data-file] .stage__panel { align-items: center; padding-top: 0; }
 :root[data-file] .stage__flow { margin-top: 0; }
 :root[data-file] .stage__panel { min-height: auto; padding-block: var(--s-7); }
 :root[data-file] .stage__scrim { background: none; }

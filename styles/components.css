@@ -89,7 +89,16 @@
 .hud__dot[data-alert="true"] { animation: hudPulse 1.1s var(--ease-io) infinite; }
 @keyframes hudPulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
 .hud__note { color: var(--fg-3); }
-@media (max-width: 860px) { .hud { right: var(--gutter); bottom: var(--s-3); font-size: .64rem; } }
+/* En portrait le texte du chapitre occupe le bas de l'ecran : le releve
+   remonte sous la barre, sinon les deux se chevauchent. */
+@media (max-width: 860px) {
+  .hud {
+    right: var(--gutter);
+    bottom: auto;
+    top: calc(var(--nav-h) + var(--s-3));
+    font-size: .64rem;
+  }
+}
 
 /* --- Annotations projetees depuis la scene 3D ------------------------- */
 .annos { position: absolute; inset: 0; z-index: var(--z-hud); pointer-events: none; }

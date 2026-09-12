@@ -95,18 +95,31 @@
 
 .stage__flow { position: relative; z-index: var(--z-flow); margin-top: -100dvh; }
 
-/* Le heros occupe une vue, chaque chapitre systeme en occupe 0.9 */
 .stage__panel { min-height: 100dvh; display: flex; align-items: center; }
 
-/* Sur petit ecran le canvas ne colle plus : le flux passe au-dessus de lui
-   (z-index superieur), donc un canvas epingle finirait recouvert par le texte
-   qui remonte. Il redevient un bloc en tete de page, le texte se lit dessous,
-   et le rendu s'arrete de lui-meme quand il sort du viewport. */
+/* Le bloc scene demarre SOUS la barre collante : un premier panneau de 100dvh
+   depasserait toujours le pli de la hauteur de cette barre, et le bouton
+   d'appel finirait hors ecran. On lui retire donc cette hauteur. */
+.stage__panel:first-child { min-height: calc(100dvh - var(--nav-h)); }
+
+/* Sur petit ecran le canvas reste epingle, comme au bureau : c'est lui qui
+   porte le recit. Ce qui change, c'est la place du texte. En paysage il occupe
+   une colonne laterale ; en portrait il n'y a pas de cote libre, alors il
+   descend en BAS de l'ecran et la scene garde tout le haut. Un seul voile
+   suffit alors, monte du bas. */
 @media (max-width: 860px) {
-  .stage__viz { position: relative; top: auto; height: 56dvh; }
-  .stage__flow { margin-top: 0; }
-  .stage__panel { min-height: auto; padding-block: var(--s-7); }
-  .stage__scrim--l { background: linear-gradient(to top, var(--ink-900) 0%, transparent 30%); }
+  .stage__panel {
+    align-items: flex-end;
+    padding-top: var(--s-5);
+    padding-bottom: var(--s-6);
+  }
+  .stage__scrim--l {
+    background: linear-gradient(to top,
+      var(--ink-900) 0%,
+      color-mix(in srgb, var(--ink-900) 90%, transparent) 30%,
+      color-mix(in srgb, var(--ink-900) 45%, transparent) 52%,
+      transparent 72%);
+  }
   .stage__scrim--r { display: none; }
 }
 

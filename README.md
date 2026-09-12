@@ -152,10 +152,25 @@ interieure le decalerait. Le test ne mesure donc pas la boite de l'element mais
 POINTE les quatre coins d'un carre de 24 px, ce qui mesure la zone reellement
 cliquable. Le critere n'est verifie que sur les viewports tactiles.
 
+**Le canvas reste colle en portrait, le texte descend en bas.** En paysage le
+texte occupe une colonne laterale et la scene l'autre. En portrait il n'y a pas
+de cote libre : le texte passe donc en bas de l'ecran et la scene garde tout le
+haut. Un canvas non colle defilerait et disparaitrait des le premier
+mouvement, laissant le visiteur passer du plan d'ouverture directement a la
+section suivante. Le test verifie que le canvas occupe au moins 25 % de l'ecran
+a chacune des cinq etapes du defilement.
+
+**Le premier panneau vaut `100dvh` moins la hauteur de barre.** Le bloc scene
+commence sous la barre collante : un premier panneau de `100dvh` entier
+depasserait toujours le pli d'exactement cette hauteur, et le bouton d'appel
+finirait hors ecran. Le test l'assure explicitement.
+
 **Le fov de la camera est vertical.** En portrait, un fov constant retrecit le
-champ horizontal et rognait la carte sur les cotes. `fitFov` recalcule le fov
-vertical pour conserver le champ horizontal de reference, plafonne a 76 degres
-pour eviter la distorsion de grand angle.
+champ horizontal et rognait la carte sur les cotes. `fitCamera` compense en deux temps :
+il ouvre le fov vertical, plafonne a 76 degres, puis RECULE la camera pour ce
+qui reste a rattraper. Un plein ecran de telephone a une proportion de 0,46, ou
+la compensation par le seul fov demanderait plus de 100 degres et deformerait
+toute la scene ; le recul, lui, ne coute aucune distorsion.
 
 ## Contraste
 

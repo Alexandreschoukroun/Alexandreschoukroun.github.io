@@ -149,6 +149,10 @@ for (const vp of VIEWPORTS) {
     const h1 = document.querySelector('h1');
     const h1cs = h1 ? getComputedStyle(h1) : null;
 
+    // Le bouton d'appel doit tenir dans le premier ecran, sans defilement.
+    const cta = document.querySelector('.hero__cta .btn');
+    const ctaBox = cta ? cta.getBoundingClientRect() : null;
+
     return {
       vw,
       scrollW: doc.scrollWidth,
@@ -159,6 +163,8 @@ for (const vp of VIEWPORTS) {
       smallTargets: [...new Set(small)].slice(0, 6),
       h1Size: h1cs ? parseFloat(h1cs.fontSize) : 0,
       h1Lines: h1 ? Math.round(h1.getBoundingClientRect().height / parseFloat(h1cs.lineHeight)) : 0,
+      ctaBottom: ctaBox ? Math.round(ctaBox.bottom) : 0,
+      ctaVisible: !!ctaBox && ctaBox.bottom <= innerHeight && ctaBox.top >= 0,
       vizH: Math.round((document.querySelector('.stage__viz')?.getBoundingClientRect().height) || 0),
       bodyFont: parseFloat(getComputedStyle(document.body).fontSize),
     };
@@ -186,7 +192,40 @@ for (const vp of VIEWPORTS) {
   if (r.h1Lines > 3) bad(`titre sur ${r.h1Lines} lignes (${Math.round(r.h1Size)}px)`);
   else ok(`titre sur ${r.h1Lines} ligne(s), ${Math.round(r.h1Size)}px`);
 
+  if (!r.ctaVisible) bad(`bouton d'appel sous le pli : bas a ${r.ctaBottom}px pour ${vp.h}px d ecran`);
+  else ok(`bouton d'appel visible sans defiler (bas a ${r.ctaBottom}px)`);
+
   if (r.bodyFont < 14) bad(`texte courant a ${r.bodyFont}px`);
+
+  // --- le canvas doit rester visible pendant tout le bloc scene -----------
+  // C'est la regression a empecher : un canvas non colle defile et disparait,
+  // on passe du plan d'ouverture directement a la section suivante.
+  const story = await page.evaluate(async () => {
+    const stage = document.getElementById('stage');
+    const viz = document.querySelector('.stage__viz');
+    if (!stage || !viz) return null;
+    const travel = stage.offsetHeight - innerHeight;
+    const out = [];
+    for (const frac of [0, 0.25, 0.5, 0.75, 1]) {
+      window.scrollTo(0, Math.round(stage.offsetTop + frac * travel));
+      await new Promise((r) => setTimeout(r, 260));
+      const b = viz.getBoundingClientRect();
+      const visible = Math.max(0, Math.min(b.bottom, innerHeight) - Math.max(b.top, 0));
+      out.push({ frac, visible: Math.round(visible), pct: Math.round((visible / innerHeight) * 100) });
+    }
+    window.scrollTo(0, 0);
+    return { travel: Math.round(travel), steps: out, sticky: getComputedStyle(viz).position };
+  });
+
+  if (story) {
+    const worst = Math.min(...story.steps.map((x) => x.pct));
+    if (worst < 25) {
+      bad(`la scene disparait pendant le defilement (${story.sticky}) : ` +
+        story.steps.map((x) => `${x.frac}=${x.pct}%`).join(' '));
+    } else {
+      ok(`scene visible tout du long (min ${worst}% de l ecran, ${story.sticky})`);
+    }
+  }
 
   if (SHOTS) {
     const f = `tests/shots/responsive/${vp.name}.png`;

@@ -102,8 +102,19 @@ async function bootScene() {
   // exactement le sujet 3D au lieu de proteger le texte.
   const scrimL = document.getElementById('scrim-l');
   const scrimR = document.getElementById('scrim-r');
+  // En portrait le texte est toujours en bas : un seul voile, pilote par le
+  // CSS. Le croisement gauche/droite n'a de sens qu'en mise en page laterale.
+  const single = matchMedia('(max-width: 860px)');
   let lastFlip = -1;
   const setScrim = (p) => {
+    if (single.matches) {
+      if (lastFlip !== -2) {
+        lastFlip = -2;
+        if (scrimL) scrimL.style.opacity = '';
+        if (scrimR) scrimR.style.opacity = '';
+      }
+      return;
+    }
     const flip = clamp01((p - 0.14) / 0.18);      // bascule entre le heros et le 1er chapitre
     if (Math.abs(flip - lastFlip) < 0.01) return; // on n'ecrit pas a chaque frame
     lastFlip = flip;
