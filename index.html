@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title data-i18n="meta.title">Alexandre Schoukroun, développeur C++ embarqué et temps réel</title>
+<meta name="description" data-i18n-attr="content:meta.description" content="Développeur C++ embarqué et temps réel. Vision par ordinateur, acoustique et radar pour la détection de la faune sur parcs éoliens. Trois produits SaaS en production.">
+<meta name="author" content="Alexandre Schoukroun">
+<link rel="canonical" href="https://alexandreschoukroun.github.io/">
+
+<meta property="og:type" content="profile">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:title" data-i18n-attr="content:meta.title" content="Alexandre Schoukroun, développeur C++ embarqué et temps réel">
+<meta property="og:description" data-i18n-attr="content:meta.ogDescription" content="Trois ans à construire les détecteurs de faune qui arrêtent les éoliennes avant l'impact. C++17, vision par ordinateur, traitement du signal.">
+<meta property="og:image" content="https://alexandreschoukroun.github.io/assets/img/og.png">
+<meta property="og:url" content="https://alexandreschoukroun.github.io/">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23090C0B'/%3E%3Crect x='14' y='6' width='4' height='20' fill='%23D8E021'/%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<link rel="stylesheet" href="styles/tokens.css">
+<link rel="stylesheet" href="styles/base.css">
+<link rel="stylesheet" href="styles/layout.css">
+<link rel="stylesheet" href="styles/components.css">
+<link rel="stylesheet" href="styles/sections.css">
+
+<!-- Script de secours, volontairement en ligne et classique : il doit tourner
+     meme quand les modules ES ne chargent pas. Il pose le theme avant le
+     premier rendu, et decide si la page a le droit de masquer son contenu. -->
+<script>
+(function () {
+  var root = document.documentElement;
+
+  try {
+    var saved = localStorage.getItem('theme');
+    var sys = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    root.dataset.theme = saved || sys;
+  } catch (e) { root.dataset.theme = 'dark'; }
+
+  // Ouverte par double-clic : le navigateur bloque les modules ES en file://.
+  // On n'active donc jamais les apparitions, et on affiche la marche a suivre.
+  if (location.protocol === 'file:') { root.dataset.file = ''; return; }
+
+  // Sinon on autorise l'etat masque, avec un garde-fou : si main.js n'a pas
+  // demarre au bout de 1,8 s (erreur, reseau coupe, CDN injoignable), on
+  // rebascule sur le contenu visible plutot que de laisser une page blanche.
+  root.classList.add('js');
+  setTimeout(function () {
+    if (!root.hasAttribute('data-booted')) root.classList.remove('js');
+  }, 1800);
+})();
+</script>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js"
+  }
+}
+</script>
+</head>
+
+<body>
+<a class="skip" href="#main" data-i18n="nav.skip">Aller au contenu</a>
+
+<!-- Visible uniquement en file://. N'apparait jamais une fois le site servi. -->
+<div class="filenote">
+  <p><b>Page ouverte en <code>file://</code>.</b> Le navigateur bloque les modules ES,
+  donc la scène 3D et les animations sont désactivées.</p>
+  <p>Lancez <code>npm run dev</code> (ou double-cliquez <code>dev.cmd</code>)
+  puis ouvrez <code>http://localhost:5173</code>.</p>
+</div>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="nav">
+  <div class="shell nav__in">
+    <a class="nav__name" href="#main">Alexandre Schoukroun</a>
+    <div class="nav__right">
+      <nav class="nav__links" aria-label="Sections">
+        <a href="#systeme" data-optional data-i18n="nav.system">Système</a>
+        <a href="#experience" data-i18n="nav.experience">Expérience</a>
+        <a href="#produits" data-optional data-i18n="nav.products">Produits</a>
+        <a href="#stack" data-optional data-i18n="nav.stack">Stack</a>
+        <a href="#contact" data-i18n="nav.contact">Contact</a>
+      </nav>
+      <button class="themebtn langbtn" type="button" id="langbtn" aria-label="Switch site to English">
+        <span class="langbtn__en">EN</span>
+        <span class="langbtn__fr">FR</span>
+      </button>
+      <button class="themebtn" type="button" id="themebtn">
+        <span class="themebtn__off" data-i18n="nav.themeLight">Clair</span>
+        <span class="themebtn__on" data-i18n="nav.themeDark">Sombre</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ====================================================================
+       Bloc scene : un canvas colle porte le heros puis les trois chapitres.
+       La camera avance vers la nacelle au fil du defilement.
+       ==================================================================== -->
+  <div class="stage" id="stage">
+
+    <div class="stage__viz">
+      <canvas class="stage__canvas" id="viz" aria-hidden="true"></canvas>
+
+      <div class="vizfallback" id="vizfallback">
+        <p class="mono" data-i18n="viz.fallback">Rendu 3D indisponible sur cet appareil</p>
+        <p class="vizfallback__big">C++</p>
+      </div>
+
+      <!-- Deux voiles : le texte passe de gauche (heros) a droite (chapitres),
+           donc la protection doit changer de cote, sinon elle recouvre la scene. -->
+      <div class="stage__scrim stage__scrim--l" id="scrim-l" aria-hidden="true"></div>
+      <div class="stage__scrim stage__scrim--r" id="scrim-r" aria-hidden="true"></div>
+
+      <div class="annos" id="annos" aria-hidden="true">
+        <span class="anno" data-anchor="vision" data-i18n="anno.vision">Capteur vision</span>
+        <span class="anno" data-anchor="chip" data-i18n="anno.chip">Calculateur</span>
+        <span class="anno" data-anchor="machine" data-i18n="anno.machine">Machine pilotée</span>
+      </div>
+
+      <div class="hud" id="hud" aria-hidden="true">
+        <div class="hud__row">
+          <span class="hud__dot" id="hud-dot"></span>
+          <span class="hud__state" id="hud-state">Balayage du secteur</span>
+        </div>
+        <div id="hud-metric">40 images/s</div>
+        <div class="hud__note" data-i18n="hud.note">Chaîne de traitement, simulation</div>
+      </div>
+
+      <p class="sr-only" data-i18n="viz.alt">
+        Reconstitution animée d'une chaîne de traitement embarquée : une carte électronique
+        dont le calculateur central reçoit trois flux capteur, vision, acoustique et radar,
+        puis émet une commande d'arrêt vers la machine qu'elle pilote.
+      </p>
+    </div>
+
+    <div class="stage__flow">
+
+      <!-- 1. Heros -->
+      <section class="hero stage__panel" id="apropos">
+        <div class="shell grid12">
+          <div class="hero__in">
+            <p class="hero__eyebrow reveal">Alexandre Schoukroun</p>
+            <h1 class="reveal" style="--i:1"><span data-i18n="hero.h1a">Voir, entendre,</span> <em data-i18n="hero.h1b">décider</em>.</h1>
+            <p class="lead hero__lead reveal" style="--i:2" data-i18n="hero.lead">
+              Développeur C++ embarqué et temps réel. Vision, acoustique et radar :
+              du capteur à la décision, en quelques millisecondes.
+            </p>
+            <div class="hero__cta reveal" style="--i:3">
+              <a class="btn btn--solid" href="#contact" data-i18n="hero.ctaContact">Me contacter</a>
+              <a class="btn btn--ghost" href="assets/cv-alexandre-schoukroun.pdf" download>
+                <span data-i18n="hero.ctaCv">Télécharger le CV</span> <span class="btn__arrow" aria-hidden="true">&#8599;</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. Le systeme, raconte en trois temps -->
+      <section id="systeme">
+        <div class="stage__panel">
+          <div class="shell grid12">
+            <div class="stage__intro reveal">
+              <div class="rule" aria-hidden="true"></div>
+              <h2 data-i18n="sys.title">Du capteur à la machine, en un seul cycle.</h2>
+              <p class="lead" style="margin-top:var(--s-4)" data-i18n="sys.lead">
+                La scène montre la chaîne que je construis : trois flux capteur, un calculateur
+                embarqué, et une commande qui repart vers la machine à piloter.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="stage__panel chap" data-chapter="1">
+          <div class="shell grid12">
+            <div class="chap__in reveal">
+              <h2 data-i18n="sys.ch1Title">Acquisition</h2>
+              <p data-i18n="sys.ch1Body">
+                Caméra, micro ultrason et radar balaient le secteur en continu et poussent
+                leurs flux vers le calculateur, sans jamais lâcher la cadence.
+              </p>
+              <div class="chap__tech" aria-label="Technologies">
+                <span>C++17</span><span>OpenCV</span><span>Multithreading</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stage__panel chap" data-chapter="2">
+          <div class="shell grid12">
+            <div class="chap__in reveal">
+              <h2 data-i18n="sys.ch2Title">Inférence et suivi</h2>
+              <p data-i18n="sys.ch2Body">
+                Le calculateur fusionne les trois sources. Un modèle YOLOv8 exporté en ONNX
+                classe les objets, un filtre de Kalman reconstruit leurs trajectoires.
+              </p>
+              <div class="chap__tech" aria-label="Technologies">
+                <span>YOLOv8</span><span>ONNX</span><span>Filtre de Kalman</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stage__panel chap" data-chapter="3">
+          <div class="shell grid12">
+            <div class="chap__in reveal">
+              <h2 data-i18n="sys.ch3Title">Décision</h2>
+              <p data-i18n="sys.ch3Body">
+                Quand une trajectoire croise la zone à risque, la consigne part sur le bus
+                vers la machine. Chez Biodiv-Wind, c'est une éolienne qui s'arrête.
+              </p>
+              <div class="chap__tech" aria-label="Technologies">
+                <span>Drogon</span><span>REST</span><span>Qt</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       3. Experience
+       ==================================================================== -->
+  <section class="section" id="experience">
+    <div class="shell">
+      <div class="section__head reveal" data-parallax="0.05">
+        <div class="rule" aria-hidden="true"></div>
+        <h2 data-i18n="xp.title">Trois ans sur un produit installé sur le terrain.</h2>
+        <p class="lead" data-i18n="xp.lead">
+          Des contraintes de latence, de matériel et de météo. Une équipe en Scrum, du TDD
+          et de l'intégration continue. En parallèle, je conçois et j'exploite mes propres
+          produits, ce qui m'a appris à tenir une architecture dans la durée.
+        </p>
+      </div>
+
+      <div class="xp">
+
+        <article class="xp__row reveal">
+          <div>
+            <p class="xp__when">2023 - 2026</p>
+            <p class="xp__org">Biodiv-Wind</p>
+            <p class="xp__role" data-i18n="xp.bwRole">Développeur logiciel embarqué, alternance</p>
+            <p class="mono" style="margin-top:var(--s-4)" data-i18n="xp.bwRail">
+              3 systèmes de détection<br>Architecture au déploiement
+            </p>
+          </div>
+          <div class="xp__body">
+            <p data-i18n="xp.bwBody">
+              J'ai porté les briques logicielles de détection et de décision qui équipent les
+              parcs éoliens, de la preuve de concept à la version installée sur site. Sprints,
+              revues de code, pair programming, tests d'abord.
+            </p>
+            <div class="units">
+              <div class="unit">
+                <h4>SafeWind</h4>
+                <p data-i18n="xp.safewindBody">
+                  Vision temps réel : acquisition caméra, inférence YOLOv8 en ONNX via OpenCV DNN,
+                  suivi par filtre de Kalman, puis arrêt de la turbine quand l'oiseau entre en zone
+                  à risque.
+                </p>
+              </div>
+              <div class="unit">
+                <h4>AudioBat</h4>
+                <p data-i18n="xp.audiobatBody">
+                  Détection acoustique des chauves-souris : acquisition des ultrasons, traitement
+                  du signal et classification des passages, sur matériel à ressources contraintes.
+                </p>
+              </div>
+              <div class="unit">
+                <h4>Radar</h4>
+                <p data-i18n="xp.radarBody">
+                  Intégration d'un radar Furuno et exploitation des échos pour détecter les
+                  approches hors de portée des caméras, avec fusion des sources de détection.
+                </p>
+              </div>
+            </div>
+            <p data-i18n="xp.bwServices">
+              Côté services : serveurs REST en C++ avec Drogon, interfaces de supervision en Qt,
+              conteneurisation Docker et déploiement sur les machines de terrain.
+            </p>
+          </div>
+        </article>
+
+        <article class="xp__row reveal">
+          <div>
+            <p class="xp__when">2022 - 2023</p>
+            <p class="xp__org">Teoola Pro</p>
+            <p class="xp__role" data-i18n="xp.teoolaRole">Développeur web, deux stages BTS SIO</p>
+          </div>
+          <div class="xp__body">
+            <p data-i18n="xp.teoolaBody">
+              Sites et applications pour des clients variés, en PHP et Symfony, du front-end à
+              la mise en production. Premier contact avec le rythme d'une agence et la livraison
+              face au client.
+            </p>
+          </div>
+        </article>
+
+        <article class="xp__row reveal">
+          <div>
+            <p class="xp__when">2021 - 2023</p>
+            <p class="xp__org">Auchan</p>
+            <p class="xp__role" data-i18n="xp.auchanRole">Préparateur livreur, Béziers</p>
+          </div>
+          <div class="xp__body">
+            <p data-i18n="xp.auchanBody">
+              Préparation de commandes et gestion des stocks en parallèle des études. Trois ans
+              de travail cadencé, de fiabilité et de relation client directe.
+            </p>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       4. Produits
+       ==================================================================== -->
+  <section class="section" id="produits">
+    <div class="shell">
+      <div class="section__head reveal" data-parallax="0.05">
+        <div class="rule" aria-hidden="true"></div>
+        <h2 data-i18n="prod.title">Ce que je fais tourner en dehors du travail.</h2>
+        <p class="lead" data-i18n="prod.lead">
+          Trois produits que je porte seul ou à deux, du code à la mise en production,
+          avec de vrais utilisateurs en face.
+        </p>
+      </div>
+
+      <div class="bento">
+
+        <article class="card card--lead reveal">
+          <div class="shot">
+            <img src="assets/img/adscope.webp" width="1400" height="1081" loading="lazy"
+                 data-i18n-attr="alt:prod.adscopeAlt" alt="Page d'accueil d'AdScope montrant l'analyse d'une recherche dans la Facebook Ad Library"
+                 onerror="this.closest('.shot').classList.add('is-empty')">
+            <div class="shot__empty"><b>adscope.cloud</b><span data-i18n="prod.shotMissing">Capture à ajouter</span></div>
+          </div>
+          <div class="card__body">
+            <p class="card__tag" data-i18n="prod.adscopeTag">SaaS, clients payants</p>
+            <h3>Adscope</h3>
+            <p data-i18n="prod.adscopeBody">
+              Extension Chrome et tableau de bord qui transforment la Facebook Ad Library en
+              outil d'analyse : estimation des budgets publicitaires, détection des boutiques
+              Shopify, lecture des accroches, export CSV. Freemium, audience anglophone.
+            </p>
+            <div class="card__meta">
+              <span>Next.js</span><span>React</span><span>API REST</span><span>Stripe</span>
+              <a class="link" href="https://adscope.cloud" target="_blank" rel="noopener">
+                adscope.cloud <span aria-hidden="true">&#8599;</span>
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="card card--side reveal" style="--i:1">
+          <div class="shot">
+            <img src="assets/img/a2studio.webp" width="900" height="776" loading="lazy"
+                 data-i18n-attr="alt:prod.a2Alt" alt="Page d'accueil d'A2 Studio, agence web"
+                 onerror="this.closest('.shot').classList.add('is-empty')">
+            <div class="shot__empty"><b>A2 Studio</b><span data-i18n="prod.shotMissing">Capture à ajouter</span></div>
+          </div>
+          <div class="card__body">
+            <p class="card__tag" data-i18n="prod.a2Tag">Agence web, cofondée</p>
+            <h3>A2 Studio</h3>
+            <p data-i18n="prod.a2Body">
+              Sites, image de marque, référencement local et hébergement pour des entreprises
+              locales. Le but est qu'une petite structure existe en ligne aussi bien
+              qu'une grande.
+            </p>
+            <div class="card__meta">
+              <span>React</span><span>PHP</span><span>SEO local</span><span data-i18n="prod.a2Meta4">Hébergement</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card card--wide reveal" style="--i:2">
+          <div class="shot">
+            <img src="assets/img/immocoin.webp" width="1100" height="757" loading="lazy"
+                 data-i18n-attr="alt:prod.immoAlt" alt="ImmoCoin calculant le cashflow d'une annonce immobilière sur LeBonCoin"
+                 onerror="this.closest('.shot').classList.add('is-empty')">
+            <div class="shot__empty"><b>immocoin.pro</b><span data-i18n="prod.shotMissing">Capture à ajouter</span></div>
+          </div>
+          <div class="card__body">
+            <p class="card__tag" data-i18n="prod.immoTag">Extension Chrome</p>
+            <h3>ImmoCoin</h3>
+            <p data-i18n="prod.immoBody">
+              S'intègre directement aux annonces LeBonCoin et affiche le cashflow, la
+              rentabilité nette et les prix du marché. Trancher un investissement en quelques
+              secondes au lieu d'ouvrir un tableur.
+            </p>
+            <div class="card__meta">
+              <span>Chrome MV3</span><span>Next.js</span>
+              <a class="link" href="https://immocoin.pro" target="_blank" rel="noopener">
+                immocoin.pro <span aria-hidden="true">&#8599;</span>
+              </a>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       5. Stack
+       ==================================================================== -->
+  <section class="section" id="stack">
+    <div class="shell">
+      <div class="section__head reveal" data-parallax="0.05">
+        <div class="rule" aria-hidden="true"></div>
+        <h2 data-i18n="stack.title">Stack</h2>
+        <p class="lead" data-i18n="stack.lead">
+          Ce que j'utilise réellement, en production comme sur le terrain.
+        </p>
+      </div>
+
+      <div class="stack">
+        <div class="stack__g reveal">
+          <h3 data-i18n="stack.g1">Temps réel et embarqué</h3>
+          <div class="chips">
+            <span class="chip">C++17</span>
+            <span class="chip">C</span>
+            <span class="chip">CMake</span>
+            <span class="chip">Qt</span>
+            <span class="chip">Drogon</span>
+            <span class="chip">Multithreading</span>
+            <span class="chip" data-i18n="stack.signal">Traitement du signal</span>
+            <span class="chip" data-i18n="stack.acoustics">Acoustique</span>
+            <span class="chip">Radar Furuno</span>
+            <span class="chip" data-i18n="stack.embeddedLinux">Linux embarqué</span>
+          </div>
+        </div>
+
+        <div class="stack__g reveal" style="--i:1">
+          <h3 data-i18n="stack.g2">Vision, modèles et IA</h3>
+          <div class="chips">
+            <span class="chip">OpenCV</span>
+            <span class="chip">OpenCV DNN</span>
+            <span class="chip">YOLOv8</span>
+            <span class="chip">ONNX</span>
+            <span class="chip">ONNX Runtime</span>
+            <span class="chip" data-i18n="stack.kalman">Filtre de Kalman</span>
+            <span class="chip" data-i18n="stack.tracking">Suivi d'objets</span>
+            <span class="chip">Python</span>
+            <span class="chip">NumPy</span>
+            <span class="chip">Ollama</span>
+          </div>
+        </div>
+
+        <div class="stack__g reveal" style="--i:2">
+          <h3 data-i18n="stack.g3">Web, API et données</h3>
+          <div class="chips">
+            <span class="chip">TypeScript</span>
+            <span class="chip">React</span>
+            <span class="chip">Next.js</span>
+            <span class="chip">NestJS</span>
+            <span class="chip">Express</span>
+            <span class="chip">Node.js</span>
+            <span class="chip">PHP / Symfony</span>
+            <span class="chip">Flask</span>
+            <span class="chip">FastAPI</span>
+            <span class="chip">Tailwind CSS</span>
+            <span class="chip">Prisma</span>
+            <span class="chip">MySQL</span>
+            <span class="chip">SQLite</span>
+            <span class="chip">REST</span>
+            <span class="chip">Zod</span>
+            <span class="chip">JWT</span>
+            <span class="chip">Stripe</span>
+          </div>
+        </div>
+
+        <div class="stack__g reveal" style="--i:3">
+          <h3 data-i18n="stack.g4">Infra, outils et méthode</h3>
+          <div class="chips">
+            <span class="chip">Docker</span>
+            <span class="chip">k3s</span>
+            <span class="chip">nginx</span>
+            <span class="chip">PM2</span>
+            <span class="chip">CI/CD</span>
+            <span class="chip">Git</span>
+            <span class="chip">Bash</span>
+            <span class="chip">Linux</span>
+            <span class="chip">Chrome MV3</span>
+            <span class="chip">Scrum</span>
+            <span class="chip">TDD</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       6. Parcours
+       ==================================================================== -->
+  <section class="section" id="formation">
+    <div class="shell">
+      <div class="section__head reveal" data-parallax="0.05">
+        <div class="rule" aria-hidden="true"></div>
+        <h2 data-i18n="path.title">Parcours</h2>
+      </div>
+
+      <div class="path">
+        <div class="path__g reveal">
+          <h3 data-i18n="path.education">Formation</h3>
+          <div class="path__item">
+            <p class="path__when">2024 - 2026</p>
+            <div>
+              <p class="path__what" data-i18n="path.master">Mastère Expert en Informatique</p>
+              <p class="path__where" data-i18n="path.masterWhere">EPSI Montpellier, titre RNCP niveau 7</p>
+            </div>
+          </div>
+          <div class="path__item">
+            <p class="path__when">2023 - 2024</p>
+            <div>
+              <p class="path__what" data-i18n="path.bachelor">Bachelor Concepteur Développeur d'Applications</p>
+              <p class="path__where" data-i18n="path.bachelorWhere">EPSI Montpellier</p>
+            </div>
+          </div>
+          <div class="path__item">
+            <p class="path__when">2021 - 2023</p>
+            <div>
+              <p class="path__what" data-i18n="path.bts">BTS SIO option SLAM</p>
+              <p class="path__where" data-i18n="path.btsWhere">CNED</p>
+            </div>
+          </div>
+          <div class="path__item">
+            <p class="path__when">2018 - 2021</p>
+            <div>
+              <p class="path__what" data-i18n="path.bac">Baccalauréat général</p>
+              <p class="path__where" data-i18n="path.bacWhere">Mathématiques et sciences de l'ingénieur</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="path__g reveal" style="--i:1">
+          <h3 data-i18n="path.languages">Langues</h3>
+          <div class="path__item">
+            <p class="path__when" data-i18n="path.french">Français</p>
+            <div><p class="path__what" data-i18n="path.frenchLevel">Langue maternelle</p></div>
+          </div>
+          <div class="path__item">
+            <p class="path__when" data-i18n="path.english">Anglais</p>
+            <div>
+              <p class="path__what" data-i18n="path.englishLevel">Niveau C1</p>
+              <p class="path__where" data-i18n="path.englishWhere">Lecture technique et échanges écrits quotidiens</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       7. Contact
+       ==================================================================== -->
+  <section class="section contact" id="contact">
+    <div class="shell">
+      <div class="reveal">
+        <div class="rule" aria-hidden="true"></div>
+        <h2 data-i18n="contact.title">Disponible pour un poste C++ embarqué.</h2>
+        <p class="lead" data-i18n="contact.lead">
+          Temps réel, vision, traitement du signal, sur un produit qui a de vraies contraintes
+          matérielles. Écrivez-moi, je réponds dans la journée.
+        </p>
+      </div>
+
+      <div class="ways reveal" style="--i:1">
+        <div class="way">
+          <p class="way__lbl" data-i18n="contact.email">Email</p>
+          <p class="way__val"><a class="link" href="mailto:alexandresch01@hotmail.com">alexandresch01@hotmail.com</a></p>
+        </div>
+        <div class="way">
+          <p class="way__lbl" data-i18n="contact.phone">Téléphone</p>
+          <p class="way__val"><a class="link" href="tel:+33643525375">06 43 52 53 75</a></p>
+        </div>
+        <div class="way">
+          <p class="way__lbl" data-i18n="contact.location">Localisation</p>
+          <p class="way__val" data-i18n="contact.locationValue">Colombiers, Hérault. Mobile.</p>
+        </div>
+      </div>
+
+      <div class="contact__cta reveal" style="--i:2">
+        <a class="btn btn--solid" href="mailto:alexandresch01@hotmail.com" data-i18n="contact.cta">Me contacter</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="shell foot">
+    <p class="mono" data-i18n="foot.role">Alexandre Schoukroun, développeur C++ embarqué et temps réel</p>
+    <p class="mono">
+      <a class="link" href="https://github.com/" target="_blank" rel="noopener">GitHub</a>
+      &nbsp;&nbsp;
+      <a class="link" href="https://www.linkedin.com/" target="_blank" rel="noopener">LinkedIn</a>
+    </p>
+  </div>
+</footer>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Alexandre Schoukroun",
+  "jobTitle": "Développeur C++ embarqué et temps réel",
+  "email": "mailto:alexandresch01@hotmail.com",
+  "telephone": "+33643525375",
+  "address": { "@type": "PostalAddress", "addressLocality": "Colombiers", "addressRegion": "Hérault", "addressCountry": "FR" },
+  "knowsLanguage": ["fr", "en"],
+  "knowsAbout": ["C++", "Systèmes embarqués", "Temps réel", "OpenCV", "ONNX", "Traitement du signal", "Qt", "Docker"],
+  "alumniOf": { "@type": "EducationalOrganization", "name": "EPSI Montpellier" },
+  "worksFor": { "@type": "Organization", "name": "Biodiv-Wind" }
+}
+</script>
+
+<script type="module" src="scripts/main.js"></script>
+</body>
+</html>

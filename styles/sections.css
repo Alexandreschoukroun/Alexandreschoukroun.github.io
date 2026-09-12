@@ -1,0 +1,194 @@
+/* ==========================================================================
+   sections.css
+   Une famille de mise en page par section. Aucune famille n'est reutilisee.
+   ========================================================================== */
+
+/* ------------------------------------------------ 1. Heros (sur la scene) */
+.hero__in { grid-column: 1 / 7; padding-top: var(--nav-h); }
+.hero__eyebrow {
+  font-family: var(--mono); font-size: .72rem; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--fg-2); margin-bottom: var(--s-4);
+}
+/* 17ch a l'echelle maximale : la plus longue des deux lignes tient dans la
+   colonne, le titre ne passe jamais a trois lignes ni sous le pli. */
+.hero h1 { margin-bottom: var(--s-5); max-width: 17ch; }
+.hero h1 em { font-style: normal; color: var(--accent-text); }
+.hero__lead { max-width: 44ch; margin-bottom: var(--s-6); }
+.hero__cta { display: flex; flex-wrap: wrap; gap: var(--s-3); }
+@media (max-width: 1080px) { .hero__in { grid-column: 1 / 9; } }
+@media (max-width: 860px)  { .hero__in { padding-top: var(--s-6); } }
+
+/* ------------------------------ 2. Chapitres systeme (colonne opposee) */
+.chap__in {
+  grid-column: 7 / 13;
+  border-left: var(--hair) solid var(--line-2);
+  padding-left: var(--s-5);
+}
+.chap h2 { font-size: var(--t-h3); margin-bottom: var(--s-3); max-width: none; }
+.chap p { color: var(--fg-2); max-width: 40ch; }
+.chap__tech {
+  margin-top: var(--s-4); display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-4);
+  font-family: var(--mono); font-size: .68rem; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--fg-3);
+}
+.chap__tech span { border-bottom: var(--hair) solid var(--line-2); padding-bottom: 2px; }
+@media (max-width: 1080px) { .chap__in { grid-column: 5 / 13; } }
+@media (max-width: 860px) {
+  .chap__in { border-left: 0; padding-left: 0; border-top: var(--hair) solid var(--line-2); padding-top: var(--s-4); }
+}
+
+.stage__intro { grid-column: 1 / 13; padding-bottom: var(--s-5); }
+.stage__intro h2 { max-width: 20ch; }
+
+/* ------------------------------------------- 3. Experience : rails + rangs */
+.xp { display: grid; gap: 0; }
+.xp__row {
+  display: grid;
+  grid-template-columns: minmax(0, 210px) minmax(0, 1fr);
+  gap: var(--s-5) var(--s-7);
+  padding-block: var(--s-7);
+  border-top: var(--hair) solid var(--line);
+}
+.xp__row:first-child { border-top: 0; padding-top: 0; }
+.xp__when { font-family: var(--mono); font-size: .78rem; letter-spacing: .08em; color: var(--accent-text); }
+.xp__org { font-size: 1.5rem; font-weight: 700; font-variation-settings: "wdth" 106; letter-spacing: -.028em; margin-top: var(--s-2); }
+.xp__role { font-size: .92rem; color: var(--fg-2); margin-top: var(--s-1); }
+.xp__body p { color: var(--fg-2); max-width: var(--measure); }
+.xp__body p + p { margin-top: var(--s-4); }
+
+/* Les trois systemes : cellules, pas de liste a filets */
+.units { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-4); margin-top: var(--s-5); }
+.unit {
+  background: var(--ink-800);
+  border-top: 2px solid var(--line-2);
+  padding: var(--s-4) var(--s-4) var(--s-5);
+  transition: border-color var(--dur-2) var(--ease), background var(--dur-2) var(--ease);
+}
+.unit:hover { border-top-color: var(--accent); background: var(--ink-700); }
+.unit h4 { font-size: .98rem; font-weight: 680; letter-spacing: -.015em; }
+.unit p { font-size: .86rem; color: var(--fg-2); margin-top: var(--s-2); line-height: 1.52; max-width: none; }
+@media (max-width: 980px) { .units { grid-template-columns: 1fr; } }
+@media (max-width: 860px) { .xp__row { grid-template-columns: 1fr; padding-block: var(--s-6); } }
+
+/* ------------------------------------- 4. Produits : bento asymetrique */
+.bento {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--s-4);
+}
+.card {
+  display: flex; flex-direction: column;
+  background: var(--ink-800);
+  border: var(--hair) solid var(--line);
+  transition: border-color var(--dur-2) var(--ease), transform var(--dur-2) var(--ease);
+}
+.card:hover { border-color: var(--line-2); transform: translate3d(0, -3px, 0); }
+.card__body { padding: var(--s-5); display: flex; flex-direction: column; flex: 1; gap: var(--s-3); }
+.card__tag {
+  font-family: var(--mono); font-size: .66rem; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--fg-3);
+}
+.card h3 { font-size: 1.35rem; }
+.card p { font-size: .92rem; color: var(--fg-2); flex: 1; max-width: none; }
+.card__meta {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-2) var(--s-4);
+  padding-top: var(--s-3); border-top: var(--hair) solid var(--line);
+  font-family: var(--mono); font-size: .7rem; letter-spacing: .05em; color: var(--fg-3);
+}
+
+/* Les captures sont des pages entieres : on cadre sur le haut, la partie
+   reconnaissable, plutot que de centrer sur un milieu de page quelconque. */
+.card .shot img { object-position: top center; }
+.card .shot { border: 0; }
+
+.card--lead { grid-column: span 8; }
+.card--lead .shot { aspect-ratio: 16 / 10; border-bottom: var(--hair) solid var(--line); }
+.card--lead h3 { font-size: clamp(1.6rem, 2.4vw, 2.1rem); }
+.card--lead p { font-size: 1rem; max-width: 52ch; }
+
+.card--side { grid-column: span 4; }
+.card--side .shot { aspect-ratio: 4 / 3; border-bottom: var(--hair) solid var(--line); }
+
+/* Troisieme composition : image a gauche, texte a droite. */
+.card--wide { grid-column: span 12; flex-direction: row; align-items: stretch; }
+.card--wide .shot { flex: 0 0 38%; border-right: var(--hair) solid var(--line); }
+.card--wide .shot img { height: 100%; }
+.card--wide .card__body { justify-content: center; }
+.card--wide p { flex: none; max-width: 62ch; }
+
+@media (max-width: 980px) {
+  .card--lead, .card--side, .card--wide { grid-column: 1 / -1; }
+  .card--wide { flex-direction: column; }
+  .card--wide .shot {
+    flex: none; aspect-ratio: 16 / 10;
+    border-right: 0; border-bottom: var(--hair) solid var(--line);
+  }
+}
+
+/* ------------------------------------------ 5. Stack : trois regroupements */
+.stack { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s-7) var(--s-8); }
+.stack__g h3 {
+  font-size: .92rem; font-weight: 680; letter-spacing: -.01em;
+  padding-bottom: var(--s-3); margin-bottom: var(--s-4);
+  border-bottom: 2px solid var(--fg);
+}
+@media (max-width: 760px) { .stack { grid-template-columns: 1fr; gap: var(--s-6); } }
+
+/* ------------------------------ 6. Parcours : deux blocs, filets rares */
+.path { display: grid; grid-template-columns: 1.4fr 1fr; gap: var(--s-7); }
+.path__g h3 {
+  font-size: .92rem; font-weight: 680; letter-spacing: -.01em;
+  padding-bottom: var(--s-3); margin-bottom: var(--s-4);
+  border-bottom: 2px solid var(--fg);
+}
+.path__item { display: grid; grid-template-columns: 108px 1fr; gap: var(--s-4); padding-block: var(--s-3); }
+.path__item + .path__item { border-top: var(--hair) solid var(--line); }
+.path__when { font-family: var(--mono); font-size: .76rem; color: var(--fg-3); padding-top: .2rem; }
+.path__what { font-size: .96rem; font-weight: 560; }
+.path__where { font-size: .84rem; color: var(--fg-2); margin-top: 2px; }
+@media (max-width: 860px) { .path { grid-template-columns: 1fr; gap: var(--s-6); } }
+
+/* ---------------------------------------------------- 7. Contact : bloc */
+.contact { padding-block: clamp(var(--s-9), 14vh, var(--s-10)); }
+.contact h2 {
+  font-size: clamp(2.2rem, 6vw, 4.4rem);
+  font-variation-settings: "wdth" 114; max-width: 14ch;
+}
+.contact .lead { margin-top: var(--s-5); max-width: 46ch; }
+.ways { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-5); margin-top: var(--s-8); }
+.way__lbl { font-family: var(--mono); font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; color: var(--fg-3); margin-bottom: var(--s-2); }
+.way__val { font-size: 1.02rem; font-weight: 560; }
+.contact__cta { margin-top: var(--s-7); }
+@media (max-width: 720px) { .ways { grid-template-columns: 1fr; gap: var(--s-4); } }
+
+/* --------------------------------- Repli de mise en page du bloc scene
+   Meme traitement pour deux situations ou la scene 3D ne tourne pas : le
+   canvas cesse d'etre collant et les panneaux reprennent une hauteur libre,
+   sinon la page offre cinq ecrans de vide a faire defiler.               */
+:root[data-file] .stage__viz { position: relative; height: 46dvh; top: 0; }
+:root[data-file] .stage__flow { margin-top: 0; }
+:root[data-file] .stage__panel { min-height: auto; padding-block: var(--s-7); }
+:root[data-file] .stage__scrim { background: none; }
+:root[data-file] .hero__in,
+:root[data-file] .chap__in { grid-column: 1 / -1; }
+:root[data-file] .chap__in { border-left: 0; padding-left: 0; }
+
+/* ------------------------------------------------------- Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal { opacity: 1; transform: none; }
+  .rule { width: 72px; }
+  .stage__viz { position: relative; height: 68dvh; top: 0; }
+  .stage__flow { margin-top: 0; }
+  .stage__panel { min-height: auto; padding-block: var(--s-7); }
+  .stage__scrim { background: none; opacity: 0; }
+  .hero__in, .chap__in { grid-column: 1 / -1; }
+  .hud, .stage__canvas { opacity: 1; }
+  .chap__in { border-left: 0; padding-left: 0; }
+}

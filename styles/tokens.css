@@ -1,0 +1,134 @@
+/* ==========================================================================
+   tokens.css
+   Source unique de verite pour couleur, type, espace, profondeur.
+   Systeme : monochrome froid + UN accent (jaune haute-visibilite).
+   Rayon de coin : 0 partout. Aucune exception.
+   ========================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  /* --- Surfaces et texte (theme sombre, defaut) ------------------------- */
+  --ink-900: #090C0B;   /* fond de page */
+  --ink-800: #0E1312;   /* surface elevee */
+  --ink-700: #141B19;   /* surface pressee / champ */
+  --line:    #1E2724;   /* filet discret */
+  --line-2:  #2E3A35;   /* filet appuye */
+
+  --fg:      #E7EDE9;   /* texte primaire   16.55:1 sur ink-900 */
+  --fg-2:    #9AA7A1;   /* texte secondaire  7.87:1 */
+  --fg-3:    #6F7D77;   /* meta mono         4.56:1, le minimum qui tient AA */
+
+  /* --- Accent unique, deux roles -----------------------------------------
+     Le jaune haute-visibilite est trop clair pour servir de couleur de texte
+     sur fond clair (1.29:1). Il reste donc toujours un APLAT, et un second
+     jeton porte le meme accent quand il faut ecrire avec.                  */
+  --accent:      #D8E021;  /* aplat : bouton, carte, filet, pastille */
+  --accent-ink:  #0A0D0C;  /* texte pose SUR l'aplat        13.58:1 */
+  --accent-text: #D8E021;  /* accent en TEXTE sur le fond   13.66:1 */
+
+  /* --- Scene 3D -----------------------------------------------------------
+     Ces jetons ne sont jamais lus par le CSS : scripts/scene/palette.js les
+     recupere avec getComputedStyle et en fait des THREE.Color. C'est ce qui
+     permet a la scene WebGL de suivre le theme de la page.                  */
+  --scene-bg:     #090C0B;
+  --scene-fog:    #090C0B;
+  --scene-metal:  #39443F;   /* substrat : doit rester lisible sur fond noir */
+  --scene-metal2: #5C6A62;
+  --scene-grid:   #33443B;
+  --scene-key:    #DCE6E0;
+  --scene-rim:    #93A49B;
+  --scene-signal: #D8E021;
+
+  /* --- Scrim : protege le texte pose sur la scene ----------------------- */
+  --scrim: linear-gradient(100deg,
+            rgb(9 12 11 / .97) 0%,
+            rgb(9 12 11 / .94) 46%,
+            rgb(9 12 11 / .45) 68%,
+            rgb(9 12 11 / .06) 100%);
+  --scrim-mirror: linear-gradient(260deg,
+            rgb(9 12 11 / .97) 0%,
+            rgb(9 12 11 / .94) 42%,
+            rgb(9 12 11 / .45) 66%,
+            rgb(9 12 11 / .06) 100%);
+
+  /* --- Typographie ------------------------------------------------------ */
+  --sans: "Archivo", ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, "Cascadia Mono", Consolas, monospace;
+
+  --t-hero:  clamp(2.6rem, 5.6vw, 4.4rem);
+  --t-h2:    clamp(1.95rem, 3.9vw, 3.05rem);
+  --t-h3:    clamp(1.12rem, 1.7vw, 1.45rem);
+  --t-lead:  clamp(1.02rem, 1.32vw, 1.2rem);
+  --t-body:  1rem;
+  --t-small: .875rem;
+  --t-meta:  .75rem;
+
+  --measure: 58ch;
+
+  /* --- Espace (echelle 4px) --------------------------------------------- */
+  --s-1: .25rem; --s-2: .5rem;  --s-3: .75rem; --s-4: 1rem;
+  --s-5: 1.5rem; --s-6: 2rem;   --s-7: 3rem;   --s-8: 4rem;
+  --s-9: 6rem;   --s-10: 8rem;
+
+  --gutter: clamp(1.25rem, 4vw, 2.75rem);
+  --shell: 1320px;
+  --nav-h: 64px;
+
+  /* --- Forme ------------------------------------------------------------ */
+  --radius: 0;
+  --hair: 1px;
+
+  /* --- Mouvement -------------------------------------------------------- */
+  --ease: cubic-bezier(.16, 1, .3, 1);
+  --ease-io: cubic-bezier(.65, 0, .35, 1);
+  --dur-1: .18s; --dur-2: .34s; --dur-3: .62s; --dur-4: .9s;
+
+  /* --- Echelle z (documentee, jamais improvisee) ------------------------ */
+  --z-viz:   0;
+  --z-flow:  1;
+  --z-hud:   2;
+  --z-nav:   30;
+  --z-grain: 60;
+}
+
+/* --- Theme clair ------------------------------------------------------- */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --ink-900: #F2F3EF;
+  --ink-800: #E8EAE3;
+  --ink-700: #DDE0D8;
+  --line:    #CBD0C6;
+  --line-2:  #AEB5A9;
+
+  --fg:      #0F1412;   /* 16.69:1 */
+  --fg-2:    #4A534D;   /*  7.15:1 */
+  --fg-3:    #667069;   /*  4.61:1 */
+
+  /* L'aplat reste le meme jaune : c'est la signature, et du texte noir
+     dessus tient 13.58:1. Seule la variante ecrite est assombrie.          */
+  --accent:      #D8E021;
+  --accent-ink:  #0A0D0C;
+  --accent-text: #5E6600;  /* 5.58:1 sur le fond clair */
+
+  --scene-bg:     #F2F3EF;
+  --scene-fog:    #F2F3EF;
+  --scene-metal:  #A7AFA9;
+  --scene-metal2: #6E7872;
+  --scene-grid:   #BCC3B8;
+  --scene-key:    #FFFFFF;
+  --scene-rim:    #93A099;
+  --scene-signal: #6C7400;
+
+  --scrim: linear-gradient(100deg,
+            rgb(242 243 239 / .97) 0%,
+            rgb(242 243 239 / .94) 46%,
+            rgb(242 243 239 / .45) 68%,
+            rgb(242 243 239 / .06) 100%);
+  --scrim-mirror: linear-gradient(260deg,
+            rgb(242 243 239 / .97) 0%,
+            rgb(242 243 239 / .94) 42%,
+            rgb(242 243 239 / .45) 66%,
+            rgb(242 243 239 / .06) 100%);
+}

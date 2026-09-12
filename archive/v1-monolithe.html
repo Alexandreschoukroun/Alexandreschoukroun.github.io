@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alexandre Schoukroun — Développeur C++ temps réel & embarqué</title>
+<meta name="description" content="Développeur C++ embarqué et temps réel. Vision par ordinateur, acoustique et radar pour la détection de la faune sur parcs éoliens. Créateur de produits SaaS en production.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@85..125,400..800&family=Newsreader:opsz,wght@6..72,300..500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --concrete:#E4E7E2;
+  --panel:#D4D9D2;
+  --pine:#0F1A16;
+  --teal:#0E6156;
+  --teal-soft:#CDE2DC;
+  --amber:#E0821F;
+  --amber-soft:#F6E3C8;
+  --slate:#5C6862;
+  --hivis:#D8E021;
+  --hairline:#B6BDB5;
+  --measure:64ch;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--concrete);
+  color:var(--pine);
+  font-family:"Newsreader",Georgia,serif;
+  font-size:18px;line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px}
+h1,h2,h3,h4,.sans{font-family:"Archivo",system-ui,sans-serif;font-variation-settings:"wdth" 100}
+
+/* progress */
+#progress{position:fixed;top:0;left:0;height:3px;width:0;background:var(--hivis);z-index:60;transition:width .1s linear}
+
+/* top bar */
+.bar{position:sticky;top:0;z-index:40;background:rgba(228,231,226,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--hairline)}
+.bar .wrap{display:flex;align-items:center;justify-content:space-between;height:58px}
+.bar-name{font-family:"Archivo",sans-serif;font-weight:700;font-size:15px;letter-spacing:-.01em}
+.bar-links{display:flex;gap:22px;font-family:"Archivo",sans-serif;font-size:14px;font-weight:500}
+.bar-links a{color:var(--slate);text-decoration:none;padding:4px 0;border-bottom:1px solid transparent;transition:color .25s,border-color .25s}
+.bar-links a:hover,.bar-links a:focus-visible{color:var(--teal);border-bottom-color:var(--teal)}
+@media(max-width:720px){.bar-links a.opt{display:none}}
+
+/* hero */
+.hero{padding:74px 0 58px;position:relative}
+.hero-grid{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:52px;align-items:center}
+h1{font-size:clamp(2.9rem,7.4vw,5.3rem);font-weight:700;font-variation-settings:"wdth" 116;line-height:.92;letter-spacing:-.035em}
+h1 span{display:block;opacity:0;transform:translateY(26px);animation:rise .9s cubic-bezier(.2,.7,.2,1) forwards}
+h1 span:nth-child(2){animation-delay:.12s}
+@keyframes rise{to{opacity:1;transform:none}}
+.hero-role{font-family:"Archivo",sans-serif;font-weight:500;font-size:clamp(1rem,1.6vw,1.18rem);color:var(--slate);margin-top:20px;line-height:1.45;max-width:31ch;opacity:0;animation:rise .9s .28s cubic-bezier(.2,.7,.2,1) forwards}
+.hero-role b{color:var(--teal);font-weight:700}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px;opacity:0;animation:rise .9s .42s cubic-bezier(.2,.7,.2,1) forwards}
+.btn{font-family:"Archivo",sans-serif;font-size:15px;font-weight:600;padding:12px 22px;border-radius:2px;text-decoration:none;display:inline-block;transition:transform .25s,background .25s,color .25s,box-shadow .25s}
+.btn-solid{background:var(--teal);color:#F2F6F4;box-shadow:0 0 0 0 rgba(216,224,33,0)}
+.btn-solid:hover{transform:translateY(-2px);box-shadow:4px 4px 0 0 var(--hivis)}
+.btn-ghost{border:1px solid var(--hairline);color:var(--pine)}
+.btn-ghost:hover{border-color:var(--teal);color:var(--teal);transform:translateY(-2px)}
+@media(max-width:900px){.hero-grid{grid-template-columns:1fr;gap:34px}.hero{padding:44px 0 40px}}
+
+/* scene */
+.scene{position:relative;border:1px solid var(--hairline);border-radius:2px;overflow:hidden;opacity:0;animation:rise 1s .2s cubic-bezier(.2,.7,.2,1) forwards}
+.scene svg{display:block;width:100%;height:auto}
+.readout{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;gap:14px;padding:9px 14px;border-top:1px solid var(--hairline);background:rgba(228,231,226,.9);font-family:"Archivo",sans-serif;font-size:12.5px;font-weight:500;color:var(--slate)}
+#status{color:var(--pine);transition:color .3s}
+#status.alert{color:var(--amber)}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--hivis);border:1px solid #9AA018;margin-right:7px;vertical-align:1px;animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.45);opacity:.55}}
+
+/* ticker */
+.ticker{background:var(--pine);color:var(--concrete);overflow:hidden;border-top:1px solid var(--pine);border-bottom:1px solid var(--pine)}
+.ticker-track{display:flex;gap:0;width:max-content;animation:slide 34s linear infinite;font-family:"Archivo",sans-serif;font-size:14px;font-weight:500;padding:12px 0}
+.ticker:hover .ticker-track{animation-play-state:paused}
+.ticker-track i{font-style:normal;padding:0 26px;white-space:nowrap;color:#9FACA5}
+.ticker-track i b{color:var(--hivis);font-weight:500}
+@keyframes slide{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* sections */
+section{border-top:1px solid var(--hairline);padding:64px 0}
+h2{font-size:clamp(1.5rem,3vw,2.05rem);font-weight:700;font-variation-settings:"wdth" 108;letter-spacing:-.02em;line-height:1.1;position:relative;padding-bottom:12px}
+h2::after{content:"";position:absolute;left:0;bottom:0;height:4px;width:0;background:var(--hivis);transition:width .8s cubic-bezier(.2,.7,.2,1) .15s}
+.in h2::after{width:68px}
+.sec-head{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:52px;margin-bottom:38px;align-items:end}
+.sec-head p{color:var(--slate);max-width:var(--measure)}
+@media(max-width:900px){.sec-head{grid-template-columns:1fr;gap:14px;margin-bottom:28px}section{padding:46px 0}}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .75s cubic-bezier(.2,.7,.2,1),transform .75s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+
+/* facts */
+.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--hairline);border:1px solid var(--hairline)}
+.fact{background:var(--concrete);padding:24px 20px;position:relative;overflow:hidden;transition:background .3s}
+.fact::before{content:"";position:absolute;left:0;top:0;width:100%;height:3px;background:var(--teal);transform:scaleX(0);transform-origin:left;transition:transform .7s cubic-bezier(.2,.7,.2,1)}
+.facts.in .fact::before{transform:scaleX(1)}
+.facts.in .fact:nth-child(2)::before{transition-delay:.1s}
+.facts.in .fact:nth-child(3)::before{transition-delay:.2s}
+.facts.in .fact:nth-child(4)::before{transition-delay:.3s}
+.fact:hover{background:var(--teal-soft)}
+.fact-n{font-family:"Archivo",sans-serif;font-weight:700;font-size:2.2rem;font-variation-settings:"wdth" 104;letter-spacing:-.02em;line-height:1;color:var(--teal)}
+.fact-t{font-family:"Archivo",sans-serif;font-size:13.5px;font-weight:450;color:var(--slate);margin-top:9px;line-height:1.35}
+@media(max-width:760px){.facts{grid-template-columns:repeat(2,1fr)}}
+
+/* entries */
+.entry{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:52px;padding:36px 0;border-top:1px solid var(--hairline)}
+.entry:first-of-type{border-top:none;padding-top:0}
+.entry-when{font-family:"Archivo",sans-serif;font-size:14px;font-weight:600;color:var(--amber)}
+.entry-org{font-family:"Archivo",sans-serif;font-size:1.34rem;font-weight:700;font-variation-settings:"wdth" 106;letter-spacing:-.02em;margin-top:6px;line-height:1.15}
+.entry-role{font-family:"Archivo",sans-serif;font-size:14.5px;font-weight:500;color:var(--slate);margin-top:4px}
+.entry p{max-width:var(--measure)}
+.entry p + p{margin-top:14px}
+.sys{margin-top:22px;display:grid;gap:1px;background:var(--hairline);border:1px solid var(--hairline)}
+.sys > div{background:var(--concrete);padding:17px 18px;border-left:3px solid transparent;transition:border-color .3s,background .3s,padding-left .3s}
+.sys > div:hover{border-left-color:var(--hivis);background:#EAEDE8;padding-left:22px}
+.sys h4{font-size:15.5px;font-weight:700;letter-spacing:-.01em}
+.sys span{display:block;font-family:"Newsreader",serif;font-size:16px;color:var(--slate);margin-top:5px;line-height:1.5}
+@media(max-width:900px){.entry{grid-template-columns:1fr;gap:16px}}
+
+/* products */
+.prods{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.prod{border:1px solid var(--hairline);padding:26px 22px;background:var(--concrete);display:flex;flex-direction:column;position:relative;transition:transform .35s cubic-bezier(.2,.7,.2,1),box-shadow .35s,background .35s}
+.prod::before{content:"";position:absolute;left:-1px;right:-1px;top:-1px;height:4px;background:var(--teal)}
+.prod.live::before{background:var(--hivis)}
+.prod.warm::before{background:var(--amber)}
+.prod:hover{transform:translateY(-6px);box-shadow:8px 8px 0 0 var(--panel)}
+.prod h3{font-size:1.26rem;font-weight:700;letter-spacing:-.02em}
+.prod .tag{display:inline-block;font-family:"Archivo",sans-serif;font-size:12px;font-weight:600;margin-top:9px;padding:4px 9px;background:var(--teal-soft);color:var(--teal);border-radius:2px}
+.prod.warm .tag{background:var(--amber-soft);color:#9C5A0F}
+.prod.live .tag{background:#EDF2B8;color:#63690A}
+.prod p{font-size:17px;margin-top:15px;flex:1}
+.prod .meta{font-family:"Archivo",sans-serif;font-size:13px;color:var(--slate);margin-top:18px;padding-top:14px;border-top:1px solid var(--hairline);line-height:1.55}
+.prod a{color:var(--teal);font-weight:600;text-decoration:none;border-bottom:1px solid var(--teal)}
+.prod a:hover{background:var(--hivis);border-bottom-color:var(--pine);color:var(--pine)}
+@media(max-width:900px){.prods{grid-template-columns:1fr}}
+
+/* stack */
+.stack{display:grid;grid-template-columns:repeat(3,1fr);gap:34px}
+.stack h3{font-size:15px;font-weight:700;letter-spacing:-.01em;padding-bottom:10px;border-bottom:2px solid var(--pine)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.chip{font-family:"Archivo",sans-serif;font-size:13.5px;font-weight:500;padding:6px 12px;border:1px solid var(--hairline);border-radius:2px;background:var(--concrete);opacity:0;transform:translateY(8px) scale(.96);transition:opacity .45s,transform .45s,background .25s,color .25s,border-color .25s}
+.in .chip{opacity:1;transform:none}
+.chip:hover{background:var(--pine);color:var(--concrete);border-color:var(--pine)}
+.chip.key{border-color:var(--teal);color:var(--teal);font-weight:600}
+.chip.key:hover{background:var(--teal);color:#F2F6F4}
+@media(max-width:760px){.stack{grid-template-columns:1fr;gap:26px}}
+
+/* school */
+.school{display:grid;grid-template-columns:repeat(2,1fr);gap:0 52px}
+.school div{display:flex;gap:18px;padding:15px 0;border-bottom:1px solid var(--hairline);transition:padding-left .3s,border-color .3s}
+.school div:hover{padding-left:8px;border-bottom-color:var(--teal)}
+.school span{font-family:"Archivo",sans-serif;font-size:14px;font-weight:600;color:var(--amber);min-width:104px}
+.school p{font-size:17px;line-height:1.4}
+.school em{display:block;font-style:normal;font-size:15px;color:var(--slate)}
+@media(max-width:760px){.school{grid-template-columns:1fr}}
+
+/* contact */
+.contact{background:var(--pine);color:var(--concrete);border-top:none;position:relative;overflow:hidden}
+.contact h2{color:var(--concrete)}
+.contact h2::after{background:var(--hivis)}
+.contact p{color:#A9B3AC;max-width:var(--measure)}
+.cways{display:flex;flex-wrap:wrap;gap:16px 46px;margin-top:34px}
+.cway .lbl{display:block;font-family:"Archivo",sans-serif;font-size:13px;color:#7E8A83}
+.cway a,.cway .plain{display:inline-block;font-family:"Archivo",sans-serif;font-size:1.15rem;font-weight:600;color:var(--concrete);text-decoration:none;border-bottom:1px solid #3A4741;padding-bottom:2px;transition:color .25s,border-color .25s,transform .25s}
+.cway a:hover{color:var(--hivis);border-bottom-color:var(--hivis);transform:translateY(-2px)}
+.cway .plain{border-bottom:none;color:#A9B3AC;font-weight:500}
+.foot{padding:26px 0 40px;font-family:"Archivo",sans-serif;font-size:13px;color:#7E8A83;background:var(--pine)}
+
+a:focus-visible,.btn:focus-visible{outline:2px solid var(--teal);outline-offset:3px}
+.contact a:focus-visible{outline-color:var(--hivis)}
+
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  h1 span,.hero-role,.hero-cta,.scene,.reveal,.chip{opacity:1;transform:none}
+  .in h2::after,h2::after{width:68px}
+  .fact::before{transform:scaleX(1)}
+}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<div class="bar">
+  <div class="wrap">
+    <div class="bar-name">Alexandre Schoukroun</div>
+    <nav class="bar-links">
+      <a href="#experience">Expérience</a>
+      <a href="#produits" class="opt">Produits</a>
+      <a href="#stack" class="opt">Stack</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <h1><span>Alexandre</span><span>Schoukroun</span></h1>
+      <p class="hero-role">Développeur <b>C++ embarqué et temps réel</b>. Je construis des systèmes qui voient, entendent et décident en quelques millisecondes.</p>
+      <div class="hero-cta">
+        <a class="btn btn-solid" href="#contact">Me contacter</a>
+        <a class="btn btn-ghost" href="cv_alexandre_schoukroun.pdf">Télécharger le CV</a>
+      </div>
+    </div>
+
+    <div class="scene">
+      <svg id="scene" viewBox="0 0 600 380" role="img" aria-label="Illustration : un système de détection suit un oiseau en approche d'une éolienne et déclenche l'arrêt du rotor.">
+        <defs>
+          <clipPath id="frame"><rect x="0" y="0" width="600" height="380"/></clipPath>
+          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#C6DDD7"/><stop offset="62%" stop-color="#DCE3DD"/><stop offset="100%" stop-color="#D4D9D2"/>
+          </linearGradient>
+          <linearGradient id="sweep" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#0E6156" stop-opacity="0"/><stop offset="80%" stop-color="#0E6156" stop-opacity=".14"/><stop offset="100%" stop-color="#0E6156" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <g clip-path="url(#frame)">
+          <rect x="0" y="0" width="600" height="380" fill="url(#sky)"/>
+          <g stroke="#0E6156" stroke-width="1" opacity=".16">
+            <line x1="0" y1="76" x2="600" y2="76"/><line x1="0" y1="152" x2="600" y2="152"/>
+            <line x1="0" y1="228" x2="600" y2="228"/><line x1="120" y1="0" x2="120" y2="380"/>
+            <line x1="240" y1="0" x2="240" y2="380"/><line x1="360" y1="0" x2="360" y2="380"/>
+            <line x1="480" y1="0" x2="480" y2="380"/>
+          </g>
+          <rect id="sweepbar" x="-160" y="0" width="160" height="380" fill="url(#sweep)"/>
+          <line x1="0" y1="304" x2="600" y2="304" stroke="#0F1A16" stroke-width="1.5" opacity=".4"/>
+          <g id="risk" opacity="0">
+            <rect x="392" y="52" width="184" height="252" fill="#E0821F" opacity=".12"/>
+            <rect x="392" y="52" width="184" height="252" fill="none" stroke="#E0821F" stroke-width="1.2" stroke-dasharray="5 5"/>
+          </g>
+          <g>
+            <path d="M474 304 L470 168 L482 168 L478 304 Z" fill="#0F1A16" opacity=".85"/>
+            <g id="rotor" transform="rotate(0 476 166)" fill="#0F1A16" opacity=".85">
+              <path d="M476 166 L472 60 L482 62 Z"/>
+              <path d="M476 166 L572 196 L566 206 Z"/>
+              <path d="M476 166 L392 214 L390 202 Z"/>
+              <circle cx="476" cy="166" r="7"/>
+            </g>
+          </g>
+          <path id="trace" fill="none" stroke="#0E6156" stroke-width="1.4" stroke-dasharray="3 5" opacity=".5"/>
+          <g id="bird" fill="none" stroke="#0F1A16" stroke-width="2.6" stroke-linecap="round">
+            <path id="wingL" d="M-11 0 Q -6 -7 0 -1"/>
+            <path id="wingR" d="M11 0 Q 6 -7 0 -1"/>
+          </g>
+          <g id="box">
+            <rect id="boxRect" x="0" y="0" width="70" height="52" fill="none" stroke="#0E6156" stroke-width="1.6" stroke-dasharray="4 4" opacity=".55"/>
+            <g id="boxLabel" opacity="0">
+              <rect id="labelBg" x="0" y="0" width="108" height="20" fill="#D8E021"/>
+              <text id="labelTx" x="0" y="0" font-family="Archivo, sans-serif" font-size="12" font-weight="600" fill="#0F1A16">oiseau 94 %</text>
+            </g>
+          </g>
+        </g>
+      </svg>
+      <div class="readout">
+        <div id="status"><span class="dot"></span>Balayage du secteur</div>
+        <div id="metric">40 images/s</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track">
+    <i><b>C++17</b> temps réel</i><i>OpenCV · <b>YOLOv8</b> · ONNX</i><i>Filtre de <b>Kalman</b></i><i><b>Qt</b> supervision</i><i><b>Drogon</b> REST C++</i><i>Traitement du signal</i><i><b>Docker</b> · k3s · CI/CD</i><i><b>React</b> · Next.js</i><i>Scrum · TDD</i>
+    <i><b>C++17</b> temps réel</i><i>OpenCV · <b>YOLOv8</b> · ONNX</i><i>Filtre de <b>Kalman</b></i><i><b>Qt</b> supervision</i><i><b>Drogon</b> REST C++</i><i>Traitement du signal</i><i><b>Docker</b> · k3s · CI/CD</i><i><b>React</b> · Next.js</i><i>Scrum · TDD</i>
+  </div>
+</div>
+
+<main>
+
+<section id="apropos">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2>Ce que je fais</h2>
+      <p>Pendant trois ans d'alternance chez Biodiv-Wind, j'ai conçu et développé les logiciels embarqués qui protègent la faune volante des éoliennes : détection vidéo, détection acoustique et radar, jusqu'à la consigne d'arrêt envoyée à la machine. Du prototype au système installé sur site, en C++ moderne, avec une équipe en Scrum, du TDD et de l'intégration continue.</p>
+    </div>
+    <div class="sec-head reveal" style="margin-bottom:34px">
+      <div></div>
+      <p>En parallèle, je conçois, développe et exploite mes propres produits. Ils m'ont appris ce qu'un poste seul ne montre pas : tenir une architecture dans la durée, parler aux utilisateurs, arbitrer, et assumer ce qui tourne en production.</p>
+    </div>
+    <div class="facts reveal">
+      <div class="fact"><div class="fact-n"><span class="count" data-to="3">0</span> ans</div><div class="fact-t">d'alternance sur des systèmes embarqués déployés sur le terrain</div></div>
+      <div class="fact"><div class="fact-n"><span class="count" data-to="3">0</span></div><div class="fact-t">systèmes de détection conçus de l'architecture au déploiement</div></div>
+      <div class="fact"><div class="fact-n">C++17</div><div class="fact-t">temps réel, vision par ordinateur, traitement du signal</div></div>
+      <div class="fact"><div class="fact-n">Bac+5</div><div class="fact-t">Mastère Expert en Informatique, titre RNCP niveau 7</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="experience">
+  <div class="sec-head wrap reveal">
+    <h2>Expérience</h2>
+    <p>Trois ans sur un produit industriel réel, avec des contraintes de latence, de matériel et de terrain.</p>
+  </div>
+  <div class="wrap">
+
+    <article class="entry reveal">
+      <div>
+        <div class="entry-when">2023 — 2026</div>
+        <div class="entry-org">Biodiv-Wind</div>
+        <div class="entry-role">Développeur logiciel embarqué — alternance</div>
+      </div>
+      <div>
+        <p>Développement des briques logicielles de détection et de décision qui équipent les parcs éoliens. Travail en équipe Scrum : sprints, revues de code, pair programming, TDD, intégration continue. J'ai porté l'architecture de trois systèmes distincts, de la preuve de concept à la version installée.</p>
+        <div class="sys">
+          <div>
+            <h4>SafeWind — détection visuelle</h4>
+            <span>Pipeline de vision temps réel : acquisition caméra, inférence d'un modèle YOLOv8 exporté en ONNX via OpenCV DNN, suivi de trajectoire par filtre de Kalman, puis décision d'arrêt de la turbine lorsque l'oiseau entre dans la zone à risque.</span>
+          </div>
+          <div>
+            <h4>AudioBat — détection acoustique</h4>
+            <span>Analyse des ultrasons émis par les chauves-souris : acquisition, traitement du signal et classification des passages, sur matériel embarqué à ressources contraintes.</span>
+          </div>
+          <div>
+            <h4>Radar — détection longue portée</h4>
+            <span>Intégration d'un radar Furuno et exploitation des échos pour détecter les approches hors de portée des caméras, avec fusion des sources de détection.</span>
+          </div>
+        </div>
+        <p style="margin-top:18px">Côté logiciel de service : serveurs REST en C++ avec Drogon, interfaces de supervision en Qt, conteneurisation Docker et déploiement des services sur les machines de terrain.</p>
+      </div>
+    </article>
+
+    <article class="entry reveal">
+      <div>
+        <div class="entry-when">2022 — 2023</div>
+        <div class="entry-org">Teoola Pro</div>
+        <div class="entry-role">Développeur web — deux stages BTS SIO</div>
+      </div>
+      <div>
+        <p>Développement de sites et d'applications pour des clients variés : front-end et back-end en PHP / Symfony, intégration, mise en production. Premier contact avec le rythme d'une agence et la livraison face au client.</p>
+      </div>
+    </article>
+
+    <article class="entry reveal">
+      <div>
+        <div class="entry-when">2021 — 2023</div>
+        <div class="entry-org">Auchan</div>
+        <div class="entry-role">Préparateur livreur — Béziers</div>
+      </div>
+      <div>
+        <p>Préparation de commandes et gestion des stocks, en parallèle des études. Trois ans de travail cadencé, de fiabilité et de relation client directe.</p>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<section id="produits">
+  <div class="sec-head wrap reveal">
+    <h2>Produits que je fais tourner</h2>
+    <p>Trois projets que je porte moi-même, du code à la mise en production, avec de vrais utilisateurs.</p>
+  </div>
+  <div class="wrap prods reveal">
+
+    <article class="prod live">
+      <h3>Adscope</h3>
+      <div class="tag">SaaS · clients payants</div>
+      <p>Outil d'analyse des publicités de la Facebook Ad Library, pour repérer ce qui fonctionne chez les concurrents. Modèle freemium, croissance organique auprès d'une audience anglophone.</p>
+      <div class="meta">Next.js, React, API REST, Stripe<br><a href="https://adscope.cloud">adscope.cloud</a></div>
+    </article>
+
+    <article class="prod">
+      <h3>A2 Studio</h3>
+      <div class="tag">Agence web · cofondée</div>
+      <p>J'accompagne les entreprises locales sur leur identité numérique : site web, image de marque, référencement local et hébergement. Le but est simple — qu'une petite structure existe en ligne aussi bien qu'une grande.</p>
+      <div class="meta">React, PHP, SEO local, hébergement</div>
+    </article>
+
+    <article class="prod warm">
+      <h3>ImmoCoin</h3>
+      <div class="tag">Extension Chrome</div>
+      <p>Calcul automatique du rendement locatif directement sur les annonces immobilières, pour trancher un investissement en quelques secondes au lieu d'un tableur.</p>
+      <div class="meta">Extension Chrome, Next.js, API<br><a href="https://immocoin.pro">immocoin.pro</a></div>
+    </article>
+
+  </div>
+</section>
+
+<section id="stack">
+  <div class="sec-head wrap reveal">
+    <h2>Stack</h2>
+    <p>Ce que j'utilise réellement, classé par ce que je sais faire seul aujourd'hui.</p>
+  </div>
+  <div class="wrap stack reveal">
+    <div>
+      <h3>Temps réel et embarqué</h3>
+      <div class="chips">
+        <span class="chip key">C++17</span><span class="chip">C</span><span class="chip key">Qt</span><span class="chip key">Drogon</span><span class="chip">Traitement du signal</span><span class="chip">Acoustique</span><span class="chip">Radar Furuno</span><span class="chip">Multithreading</span>
+      </div>
+    </div>
+    <div>
+      <h3>Vision et modèles</h3>
+      <div class="chips">
+        <span class="chip key">OpenCV</span><span class="chip">OpenCV DNN</span><span class="chip key">YOLOv8</span><span class="chip key">ONNX</span><span class="chip">Filtre de Kalman</span><span class="chip">Suivi d'objets</span><span class="chip">Python</span>
+      </div>
+    </div>
+    <div>
+      <h3>Web, outils et méthode</h3>
+      <div class="chips">
+        <span class="chip key">React</span><span class="chip">Next.js</span><span class="chip">NestJS</span><span class="chip">PHP / Symfony</span><span class="chip key">Docker</span><span class="chip">k3s</span><span class="chip">CI/CD</span><span class="chip">Git</span><span class="chip">Scrum</span><span class="chip">TDD</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="formation">
+  <div class="sec-head wrap reveal">
+    <h2>Formation et langues</h2>
+    <p>Parcours en alternance et en autonomie, du BTS au titre de niveau 7.</p>
+  </div>
+  <div class="wrap school reveal">
+    <div><span>2024 — 2026</span><p>Mastère Expert en Informatique<em>EPSI Montpellier — titre RNCP niveau 7</em></p></div>
+    <div><span>2023 — 2024</span><p>Bachelor Concepteur Développeur d'Applications<em>EPSI Montpellier</em></p></div>
+    <div><span>2021 — 2023</span><p>BTS SIO option SLAM<em>CNED</em></p></div>
+    <div><span>2018 — 2021</span><p>Baccalauréat général<em>Mathématiques et sciences de l'ingénieur</em></p></div>
+    <div><span>Français</span><p>Langue maternelle</p></div>
+    <div><span>Anglais</span><p>Niveau C1 — lecture technique et échanges écrits quotidiens</p></div>
+  </div>
+</section>
+
+<section id="contact" class="contact">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <h2>Parlons-en</h2>
+      <p>Je cherche un poste de développeur C++ embarqué ou temps réel, sur un produit qui a des contraintes réelles. Écrivez-moi, je réponds dans la journée.</p>
+    </div>
+    <div class="cways reveal">
+      <div class="cway"><span class="lbl">Email</span><a href="mailto:alexandresch01@hotmail.com">alexandresch01@hotmail.com</a></div>
+      <div class="cway"><span class="lbl">Téléphone</span><a href="tel:+33643525375">06 43 52 53 75</a></div>
+      <div class="cway"><span class="lbl">Localisation</span><span class="plain">Colombiers, Hérault — mobile</span></div>
+    </div>
+  </div>
+</section>
+<div class="foot"><div class="wrap">Alexandre Schoukroun — développeur C++ embarqué et temps réel</div></div>
+
+</main>
+
+<script>
+(function(){
+  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* progress bar */
+  var pb=document.getElementById('progress');
+  function onScroll(){
+    var h=document.documentElement.scrollHeight-window.innerHeight;
+    pb.style.width=(h>0?(window.scrollY/h*100):0)+'%';
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  /* reveals + chips stagger + counters */
+  var counted=new WeakSet();
+  function runCounters(root){
+    root.querySelectorAll('.count').forEach(function(el){
+      if(counted.has(el))return; counted.add(el);
+      var to=parseInt(el.dataset.to,10),s=performance.now();
+      if(reduce){el.textContent=to;return;}
+      (function step(now){
+        var k=Math.min((now-s)/900,1);
+        el.textContent=Math.round(to*(1-Math.pow(1-k,3)));
+        if(k<1)requestAnimationFrame(step);
+      })(s);
+    });
+  }
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      if(!e.isIntersecting)return;
+      e.target.classList.add('in');
+      e.target.querySelectorAll('.chip').forEach(function(c,i){c.style.transitionDelay=(i*45)+'ms';});
+      runCounters(e.target);
+      io.unobserve(e.target);
+    });
+  },{threshold:.18,rootMargin:'0px 0px -40px 0px'});
+  document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+
+  /* detection scene */
+  var bird=document.getElementById('bird'),boxRect=document.getElementById('boxRect'),
+      boxLabel=document.getElementById('boxLabel'),labelBg=document.getElementById('labelBg'),
+      labelTx=document.getElementById('labelTx'),rotor=document.getElementById('rotor'),
+      trace=document.getElementById('trace'),wingL=document.getElementById('wingL'),
+      wingR=document.getElementById('wingR'),statusEl=document.getElementById('status'),
+      metric=document.getElementById('metric'),risk=document.getElementById('risk'),
+      sweep=document.getElementById('sweepbar');
+
+  function pos(t){ return { x:-40+t*690, y:150+Math.sin(t*3.1)*54+t*34 }; }
+
+  function place(t,locked){
+    var p=pos(t);
+    bird.setAttribute('transform','translate('+p.x+','+p.y+')');
+    var bw=76,bh=58,bx=p.x-bw/2,by=p.y-bh/2;
+    boxRect.setAttribute('x',bx);boxRect.setAttribute('y',by);
+    boxRect.setAttribute('width',bw);boxRect.setAttribute('height',bh);
+    labelBg.setAttribute('x',bx);labelBg.setAttribute('y',by-21);
+    labelTx.setAttribute('x',bx+8);labelTx.setAttribute('y',by-7);
+    if(locked){
+      boxRect.setAttribute('stroke-dasharray','none');
+      boxRect.setAttribute('stroke','#0F1A16');
+      boxRect.setAttribute('opacity','1');
+      boxLabel.setAttribute('opacity','1');
+    }else{
+      boxRect.setAttribute('stroke-dasharray','4 4');
+      boxRect.setAttribute('stroke','#0E6156');
+      boxRect.setAttribute('opacity','.5');
+      boxLabel.setAttribute('opacity','0');
+    }
+    var d='M -40 '+pos(0).y.toFixed(1);
+    for(var k=0.02;k<=t+0.0001;k+=0.02){var q=pos(k);d+=' L '+q.x.toFixed(1)+' '+q.y.toFixed(1);}
+    trace.setAttribute('d',d);
+  }
+
+  if(reduce){
+    place(0.52,true);
+    rotor.setAttribute('transform','rotate(24 476 166)');
+    statusEl.innerHTML='<span class="dot"></span>Oiseau identifié — trajectoire suivie';
+    metric.textContent='distance 141 m';
+    return;
+  }
+
+  var t=0,angle=0,speed=1.5,last=performance.now(),flap=0,sx=-160,cur='';
+  function frame(now){
+    var dt=Math.min((now-last)/1000,.05);last=now;
+    t+=dt*.105; if(t>1.12)t=0;
+    var locked=t>.24,near=t>.60&&t<1.04;
+
+    sx+=dt*230; if(sx>600)sx=-160;
+    sweep.setAttribute('x',sx.toFixed(0));
+
+    speed+=((near?0:1.5)-speed)*dt*1.6;
+    angle=(angle+speed*dt*60)%360;
+    rotor.setAttribute('transform','rotate('+angle.toFixed(1)+' 476 166)');
+    risk.setAttribute('opacity',near?'1':(locked?'.45':'0'));
+
+    flap+=dt*9;
+    var f=Math.sin(flap)*5;
+    wingL.setAttribute('d','M-11 '+f.toFixed(1)+' Q -6 '+(-7+f).toFixed(1)+' 0 -1');
+    wingR.setAttribute('d','M11 '+f.toFixed(1)+' Q 6 '+(-7+f).toFixed(1)+' 0 -1');
+
+    place(t,locked);
+
+    var s,m;
+    if(!locked){s='Balayage du secteur';m='40 images/s';}
+    else if(!near){s='Oiseau identifié — trajectoire suivie';m='distance '+Math.round(240-t*190)+' m';}
+    else{s='Consigne d\u2019arrêt envoyée à la turbine';m='rotor en décélération';}
+    if(s!==cur){cur=s;statusEl.innerHTML='<span class="dot"></span>'+s;statusEl.classList.toggle('alert',near);}
+    metric.textContent=m;
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
