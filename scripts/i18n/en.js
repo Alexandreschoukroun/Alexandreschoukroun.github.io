@@ -63,6 +63,7 @@ export const EN = {
     'The compute unit fuses the three sources. Each detected target is tracked by a Kalman filter, which reconstructs its trajectory.',
   'sys.fusion': 'Sensor fusion',
   'sys.realtime': 'Real time',
+  'sys.webUi': 'Web supervision',
   'sys.ch3Title': 'Decision',
   'sys.ch3Body':
     'When a trajectory crosses the risk zone, the command goes out on the bus to the machine. At Biodiv-Wind, that means a wind turbine stops.',
@@ -82,7 +83,7 @@ export const EN = {
   'xp.radarBody':
     'Integration of a Furuno radar and use of its echoes to detect approaches beyond camera range, with fusion of the detection sources.',
   'xp.bwServices':
-    'On the services side: REST servers in C++ with Drogon, Qt supervision interfaces, Docker containerisation and deployment onto field machines.',
+    'On the services side: REST servers in C++ with Drogon, web supervision interfaces and deployment onto field machines.',
   'xp.teoolaRole': 'Web developer, two BTS internships',
   'xp.teoolaBody':
     'Websites and applications for a range of clients, in PHP and Symfony, from front-end to production release. First contact with agency pace and delivering in front of a client.',
