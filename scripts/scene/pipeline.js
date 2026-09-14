@@ -3,7 +3,7 @@
  * La machine a etats qui fait vivre la scene : le cycle d'une chaine de
  * traitement temps reel, capteur par capteur jusqu'a la commande.
  *
- *   acquisition -> inference -> decision -> action -> et on recommence
+ *   acquisition -> suivi -> decision -> action -> et on recommence
  *
  * Elle ne dessine rien. Elle pilote la luminosite du die, l'emission des
  * impulsions, la consigne de rotor et le texte du HUD.
@@ -11,7 +11,7 @@
 
 const STAGES = [
   { name: 'acquire', duration: 3.2, label: 'Acquisition', metric: () => '3 flux capteur' },
-  { name: 'infer', duration: 2.6, label: 'Inférence et suivi', metric: () => '40 images/s' },
+  { name: 'track', duration: 2.6, label: 'Traitement et suivi', metric: () => '40 images/s' },
   { name: 'decide', duration: 2.1, label: 'Décision', metric: () => 'consigne émise' },
   { name: 'act', duration: 2.8, label: 'Machine arrêtée', metric: () => 'rotor en décélération' },
 ];
@@ -55,8 +55,8 @@ export function createPipeline({ signals, die, palette }) {
 
       signals.update(dt, time);
 
-      // Le die chauffe pendant l'inference et la decision, puis retombe.
-      const wanted = (stage.name === 'infer' || stage.name === 'decide') ? 1 : 0.25;
+      // Le die chauffe pendant le suivi et la decision, puis retombe.
+      const wanted = (stage.name === 'track' || stage.name === 'decide') ? 1 : 0.25;
       glow += (wanted - glow) * Math.min(1, dt * 3);
       const base = pal.isLight ? 0.06 : 0.18;
       const span = pal.isLight ? 0.16 : 0.55;

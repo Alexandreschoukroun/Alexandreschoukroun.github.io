@@ -5,7 +5,7 @@
  *   0.00  vue large de la carte entiere
  *   0.25  on descend vers la surface
  *   0.50  acquisition : les trois modules capteur
- *   0.75  inference : le SoC, les impulsions qui convergent
+ *   0.75  suivi : le SoC, les impulsions qui convergent
  *   1.00  decision : la piste de sortie jusqu'a la machine
  *
  * S'y ajoutent une respiration lente dans le heros et un leger suivi du

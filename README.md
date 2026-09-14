@@ -83,8 +83,7 @@ scripts/
   scene/camera-rig.js   caméra pilotée par le défilement
   scene/palette.js      lecture des couleurs dans les tokens CSS
 assets/img/             captures servies en WebP, sources PNG dans source/
-tests/                  test de la scène hors navigateur
-archive/                l'ancienne version en un seul fichier
+tests/                  tests hors navigateur, page, responsive
 ```
 
 ## Choix techniques

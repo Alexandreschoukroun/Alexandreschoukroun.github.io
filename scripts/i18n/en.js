@@ -36,8 +36,8 @@ export const EN = {
   'hud.note': 'Processing chain, simulation',
   'hud.acquire': 'Acquisition',
   'hud.acquireMetric': '3 sensor streams',
-  'hud.infer': 'Inference and tracking',
-  'hud.inferMetric': '40 frames/s',
+  'hud.track': 'Processing and tracking',
+  'hud.trackMetric': '40 frames/s',
   'hud.decide': 'Decision',
   'hud.decideMetric': 'command sent',
   'hud.act': 'Machine stopped',
@@ -58,9 +58,11 @@ export const EN = {
   'sys.ch1Title': 'Acquisition',
   'sys.ch1Body':
     'Camera, ultrasonic microphone and radar sweep the sector continuously and push their streams to the compute unit, without ever dropping the frame rate.',
-  'sys.ch2Title': 'Inference and tracking',
+  'sys.ch2Title': 'Processing and tracking',
   'sys.ch2Body':
-    'The compute unit fuses the three sources. A YOLOv8 model exported to ONNX classifies objects, a Kalman filter reconstructs their trajectories.',
+    'The compute unit fuses the three sources. Each detected target is tracked by a Kalman filter, which reconstructs its trajectory.',
+  'sys.fusion': 'Sensor fusion',
+  'sys.realtime': 'Real time',
   'sys.ch3Title': 'Decision',
   'sys.ch3Body':
     'When a trajectory crosses the risk zone, the command goes out on the bus to the machine. At Biodiv-Wind, that means a wind turbine stops.',
@@ -74,7 +76,7 @@ export const EN = {
   'xp.bwBody':
     'I carried the detection and decision software that equips wind farms, from proof of concept to the version installed on site. Sprints, code reviews, pair programming, tests first.',
   'xp.safewindBody':
-    'Real-time vision: camera acquisition, YOLOv8 inference in ONNX through OpenCV DNN, Kalman filter tracking, then turbine shutdown when a bird enters the risk zone.',
+    'Real-time vision: camera acquisition, bird detection and trajectory tracking with a Kalman filter, then turbine shutdown when a bird enters the risk zone.',
   'xp.audiobatBody':
     'Acoustic detection of bats: ultrasound acquisition, signal processing and classification of passes, on resource-constrained hardware.',
   'xp.radarBody':

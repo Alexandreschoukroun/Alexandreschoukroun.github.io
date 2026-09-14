@@ -197,13 +197,13 @@
         <div class="stage__panel chap" data-chapter="2">
           <div class="shell grid12">
             <div class="chap__in reveal">
-              <h2 data-i18n="sys.ch2Title">Inférence et suivi</h2>
+              <h2 data-i18n="sys.ch2Title">Traitement et suivi</h2>
               <p data-i18n="sys.ch2Body">
-                Le calculateur fusionne les trois sources. Un modèle YOLOv8 exporté en ONNX
-                classe les objets, un filtre de Kalman reconstruit leurs trajectoires.
+                Le calculateur fusionne les trois sources. Chaque cible détectée est suivie
+                par un filtre de Kalman, qui reconstruit sa trajectoire.
               </p>
               <div class="chap__tech" aria-label="Technologies">
-                <span>YOLOv8</span><span>ONNX</span><span>Filtre de Kalman</span>
+                <span data-i18n="sys.fusion">Fusion de capteurs</span><span data-i18n="stack.kalman">Filtre de Kalman</span><span data-i18n="sys.realtime">Temps réel</span>
               </div>
             </div>
           </div>
@@ -264,9 +264,9 @@
               <div class="unit">
                 <h4>SafeWind</h4>
                 <p data-i18n="xp.safewindBody">
-                  Vision temps réel : acquisition caméra, inférence YOLOv8 en ONNX via OpenCV DNN,
-                  suivi par filtre de Kalman, puis arrêt de la turbine quand l'oiseau entre en zone
-                  à risque.
+                  Vision temps réel : acquisition caméra, détection des oiseaux et suivi de leur
+                  trajectoire par filtre de Kalman, puis arrêt de la turbine quand l'oiseau entre
+                  en zone à risque.
                 </p>
               </div>
               <div class="unit">
