@@ -81,6 +81,9 @@ page.on('requestfailed', (r) => errors.push(`requete echouee: ${r.url()} (${r.fa
 
 console.log('\n-- chargement --');
 await page.goto(`${BASE}/`, { waitUntil: 'networkidle2', timeout: 45000 });
+// Le site defile en douceur : un test qui saute d'un point a l'autre
+// mesurerait en plein trajet. On coupe l'animation pour les mesures.
+await page.addStyleTag({ content: 'html { scroll-behavior: auto !important; }' });
 
 // La scene est chargee en requestIdleCallback : on lui laisse le temps.
 await page.waitForFunction(
@@ -101,7 +104,6 @@ const state = await page.evaluate(() => {
     opacity: getComputedStyle(c).opacity,
     booted: document.documentElement.hasAttribute('data-booted'),
     hasJsClass: document.documentElement.classList.contains('js'),
-    stageH: document.getElementById('stage')?.offsetHeight,
   };
 });
 
@@ -169,7 +171,6 @@ if (langBtn) {
     nav: document.querySelector('.nav__links a[href="#experience"]').textContent.trim(),
     contact: document.querySelector('#contact h2').textContent.trim(),
     title: document.title,
-    hud: document.getElementById('hud-state').textContent.trim(),
     // Couverture : toute cle posee dans le HTML doit exister dans le
     // dictionnaire. C'est ce qui attrape un bloc oublie a la traduction,
     // la ou chercher des accents signale a tort les noms propres.
@@ -182,7 +183,16 @@ if (langBtn) {
   check('la navigation est traduite', en.nav === 'Experience', `"${en.nav}"`);
   check('le contact est traduit', en.contact !== fr.contact, `"${en.contact}"`);
   check('le titre du document est traduit', /embedded/i.test(en.title), `"${en.title}"`);
-  check('le HUD est traduit', !/[éè]/.test(en.hud), `"${en.hud}"`);
+  // Le releve n'est ecrit que pendant les chapitres : on s'y rend.
+  await page.evaluate(() => {
+    const el = document.getElementById('voir');
+    window.scrollTo(0, el.offsetTop + (el.offsetHeight - innerHeight) / 2);
+  });
+  await new Promise((r) => setTimeout(r, 1500));
+  const hud = await page.evaluate(() => document.getElementById('hud-state').textContent.trim());
+  check('le HUD est traduit', hud === 'Tracking', `"${hud}"`);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await new Promise((r) => setTimeout(r, 600));
   const { EN } = await import('../scripts/i18n/en.js');
   const missing = [...new Set(en.keysInDom)].filter((k) => !(k in EN));
   check('toutes les cles du HTML sont traduites', missing.length === 0,
@@ -206,14 +216,80 @@ if (langBtn) {
   check('retour au francais', back.lang === 'fr' && back.h1 === fr.h1, `"${back.h1}"`);
 }
 
+console.log('\n-- recit de la scene --');
+// Pour chaque section, la forme que les particules doivent avoir quand on y
+// est. C'est le contrat entre la page et la scene : un emplacement deplace,
+// renomme ou masque par erreur casse ce test.
+const STORY = [
+  ['#apropos', 0, 'sphere'],
+  ['#voir', 0.5, 'voir'],
+  ['#entendre', 0.5, 'ecoute'],
+  ['#decider', 0.5, 'turbine'],
+  ['#experience', 0.1, 'dust'],
+  ['.fl__head', 0, 'city'],
+  ['#contact', 0, 'name'],
+];
+for (const [sel, frac, want] of STORY) {
+  await page.evaluate((s, f) => {
+    const el = document.querySelector(s);
+    const top = el.getBoundingClientRect().top + scrollY;
+    const travel = Math.max(0, el.offsetHeight - innerHeight);
+    // Bloc colle : on avance dedans. Element court : on le centre.
+    const y = travel > 0 && f > 0 ? top + f * travel : top + el.offsetHeight / 2 - innerHeight / 2;
+    window.scrollTo(0, Math.max(0, y));
+  }, sel, frac);
+  await new Promise((r) => setTimeout(r, 900));
+  const got = await page.evaluate(() => document.getElementById('viz').dataset.shape);
+  check(`${sel} : forme ${want}`, got === want, `obtenu=${got}`);
+}
+
+const decided = await page.evaluate(async () => {
+  const el = document.getElementById('decider');
+  window.scrollTo(0, el.offsetTop + (el.offsetHeight - innerHeight) * 0.8);
+  await new Promise((r) => setTimeout(r, 1200));
+  return document.getElementById('hud-state').dataset.alert;
+});
+check('la consigne d arret part dans le chapitre Decider', decided === 'true', `alert=${decided}`);
+
+console.log('\n-- contact --');
+const contact = await page.evaluate(async () => {
+  const sec = document.getElementById('contact');
+  const visible = (sel) => [...sec.querySelectorAll(sel)].filter((e) => getComputedStyle(e).display !== 'none')
+    .map((e) => e.textContent.trim()).join(' ');
+  const before = { title: visible('.contact__title > span'), subject: sec.querySelector('input[name="subject"]').value };
+  sec.querySelector('[data-intent="hire"]').click();
+  await new Promise((r) => setTimeout(r, 50));
+  const after = {
+    title: visible('.contact__title > span'),
+    subject: sec.querySelector('input[name="subject"]').value,
+    checked: sec.querySelector('[data-intent="hire"]').getAttribute('aria-checked'),
+  };
+  document.querySelector('.fl__foot [data-intent-set]').click();
+  await new Promise((r) => setTimeout(r, 50));
+  const back = sec.dataset.mode;
+  window.scrollTo(0, 0);
+  return { before, after, back };
+});
+check('mode projet par defaut', /projet/.test(contact.before.title) && contact.before.subject === 'Projet freelance',
+  `"${contact.before.title}" / "${contact.before.subject}"`);
+check('le selecteur passe en mode recrutement', /poste/.test(contact.after.title) && contact.after.checked === 'true',
+  `"${contact.after.title}"`);
+check('l objet du mail suit le mode', contact.after.subject === 'Poste de développeur C++', `"${contact.after.subject}"`);
+check('le bouton du freelance rouvre le mode projet', contact.back === 'project', `mode=${contact.back}`);
+
 if (SHOTS) {
   console.log('\n-- captures --');
   fs.mkdirSync(path.join(ROOT, 'tests/shots'), { recursive: true });
-  const stageH = state.stageH || 4000;
-  const vh = 900;
-  for (const [name, p] of [['0-heros', 0], ['1-acquisition', 0.5], ['2-inference', 0.75], ['3-decision', 1]]) {
-    await page.evaluate((y) => window.scrollTo(0, y), Math.round(p * (stageH - vh)));
-    await new Promise((r) => setTimeout(r, 2200));   // laisser la camera arriver
+  for (const [name, sel, frac] of [
+    ['0-heros', '#apropos', 0], ['1-voir', '#voir', 0.5], ['2-entendre', '#entendre', 0.5],
+    ['3-decider', '#decider', 0.85], ['4-freelance', '.fl__head', 0], ['5-contact', '#contact', 0],
+  ]) {
+    await page.evaluate((s, f) => {
+      const el = document.querySelector(s);
+      const top = el.getBoundingClientRect().top + scrollY;
+      window.scrollTo(0, top + f * Math.max(0, el.offsetHeight - innerHeight));
+    }, sel, frac);
+    await new Promise((r) => setTimeout(r, 2600));   // laisser la forme arriver
     const f = `tests/shots/${name}.png`;
     await page.screenshot({ path: path.join(ROOT, f) });
     console.log('  ' + f);

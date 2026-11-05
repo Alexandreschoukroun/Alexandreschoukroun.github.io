@@ -1,20 +1,14 @@
 /**
  * palette.js
- * La scene 3D ne code aucune couleur en dur : elle relit les tokens CSS.
+ * La scene ne code aucune couleur en dur : elle relit les tokens CSS.
  * Changer de theme met donc a jour le rendu WebGL en meme temps que la page.
  */
 
 import * as THREE from 'three';
 
 const KEYS = {
-  bg: '--scene-bg',
-  fog: '--scene-fog',
-  metal: '--scene-metal',
-  metal2: '--scene-metal2',
-  grid: '--scene-grid',
-  key: '--scene-key',
-  rim: '--scene-rim',
-  signal: '--scene-signal',
+  particle: '--scene-particle',
+  accent: '--scene-accent',
 };
 
 export function readPalette() {

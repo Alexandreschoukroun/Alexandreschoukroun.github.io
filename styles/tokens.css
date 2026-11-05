@@ -23,39 +23,21 @@
      Le jaune haute-visibilite est trop clair pour servir de couleur de texte
      sur fond clair (1.29:1). Il reste donc toujours un APLAT, et un second
      jeton porte le meme accent quand il faut ecrire avec.                  */
-  --accent:      #D8E021;  /* aplat : bouton, carte, filet, pastille */
+  --accent:      #D8E021;  /* aplat : bouton, bande, filet, pastille */
   --accent-ink:  #0A0D0C;  /* texte pose SUR l'aplat        13.58:1 */
   --accent-text: #D8E021;  /* accent en TEXTE sur le fond   13.66:1 */
 
   /* --- Scene 3D -----------------------------------------------------------
-     Ces jetons ne sont jamais lus par le CSS : scripts/scene/palette.js les
-     recupere avec getComputedStyle et en fait des THREE.Color. C'est ce qui
-     permet a la scene WebGL de suivre le theme de la page.                  */
-  --scene-bg:     #090C0B;
-  --scene-fog:    #090C0B;
-  --scene-metal:  #39443F;   /* substrat : doit rester lisible sur fond noir */
-  --scene-metal2: #5C6A62;
-  --scene-grid:   #33443B;
-  --scene-key:    #DCE6E0;
-  --scene-rim:    #93A49B;
-  --scene-signal: #D8E021;
-
-  /* --- Scrim : protege le texte pose sur la scene ----------------------- */
-  --scrim: linear-gradient(100deg,
-            rgb(9 12 11 / .97) 0%,
-            rgb(9 12 11 / .94) 46%,
-            rgb(9 12 11 / .45) 68%,
-            rgb(9 12 11 / .06) 100%);
-  --scrim-mirror: linear-gradient(260deg,
-            rgb(9 12 11 / .97) 0%,
-            rgb(9 12 11 / .94) 42%,
-            rgb(9 12 11 / .45) 66%,
-            rgb(9 12 11 / .06) 100%);
+     Jamais lus par le CSS : scripts/scene/palette.js les recupere avec
+     getComputedStyle. La scene suit ainsi le theme de la page.              */
+  --scene-particle: #BFCBC5;
+  --scene-accent:   #D8E021;
 
   /* --- Typographie ------------------------------------------------------ */
   --sans: "Archivo", ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, "Cascadia Mono", Consolas, monospace;
 
+  --t-display: clamp(2.7rem, 6.3vw, 6.6rem);
   --t-hero:  clamp(2.6rem, 5.6vw, 4.4rem);
   --t-h2:    clamp(1.95rem, 3.9vw, 3.05rem);
   --t-h3:    clamp(1.12rem, 1.7vw, 1.45rem);
@@ -84,12 +66,15 @@
   --ease-io: cubic-bezier(.65, 0, .35, 1);
   --dur-1: .18s; --dur-2: .34s; --dur-3: .62s; --dur-4: .9s;
 
-  /* --- Echelle z (documentee, jamais improvisee) ------------------------ */
-  --z-viz:   0;
-  --z-flow:  1;
-  --z-hud:   2;
-  --z-nav:   30;
-  --z-grain: 60;
+  /* --- Echelle z (documentee, jamais improvisee) ------------------------
+     La scene est fixe derriere tout ; ses calques (cadre de suivi) juste
+     au-dessus ; le contenu au-dessus des deux ; le releve, puis la barre.  */
+  --z-gl:      0;
+  --z-overlay: 1;
+  --z-main:    2;
+  --z-hud:     3;
+  --z-nav:     30;
+  --z-grain:   60;
 }
 
 /* --- Theme clair ------------------------------------------------------- */
@@ -112,23 +97,6 @@
   --accent-ink:  #0A0D0C;
   --accent-text: #5E6600;  /* 5.58:1 sur le fond clair */
 
-  --scene-bg:     #F2F3EF;
-  --scene-fog:    #F2F3EF;
-  --scene-metal:  #A7AFA9;
-  --scene-metal2: #6E7872;
-  --scene-grid:   #BCC3B8;
-  --scene-key:    #FFFFFF;
-  --scene-rim:    #93A099;
-  --scene-signal: #6C7400;
-
-  --scrim: linear-gradient(100deg,
-            rgb(242 243 239 / .97) 0%,
-            rgb(242 243 239 / .94) 46%,
-            rgb(242 243 239 / .45) 68%,
-            rgb(242 243 239 / .06) 100%);
-  --scrim-mirror: linear-gradient(260deg,
-            rgb(242 243 239 / .97) 0%,
-            rgb(242 243 239 / .94) 42%,
-            rgb(242 243 239 / .45) 66%,
-            rgb(242 243 239 / .06) 100%);
+  --scene-particle: #26302B;
+  --scene-accent:   #6C7400;
 }

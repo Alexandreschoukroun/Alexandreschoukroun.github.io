@@ -9,64 +9,64 @@
 
 export const EN = {
   /* --- metadonnees ----------------------------------------------------- */
-  'meta.title': 'Alexandre Schoukroun, embedded and real-time C++ developer',
+  'meta.title': 'Alexandre Schoukroun, embedded C++ developer and freelancer',
   'meta.description':
-    'Embedded and real-time C++ developer. Computer vision, acoustics and radar for wildlife detection on wind farms. Three SaaS products in production.',
+    'Embedded and real-time C++ developer: vision, acoustics and radar for wildlife detection on wind farms. Freelance: web apps, SaaS, Chrome extensions, C++ and AI.',
   'meta.ogDescription':
-    'Three years building the wildlife detectors that stop wind turbines before impact. C++17, computer vision, signal processing.',
+    'Three years building the wildlife detectors that stop wind turbines before impact. Available for a full-time role or freelance work.',
 
   /* --- navigation ------------------------------------------------------- */
   'nav.skip': 'Skip to content',
   'nav.system': 'System',
   'nav.experience': 'Experience',
   'nav.products': 'Products',
-  'nav.stack': 'Stack',
   'nav.contact': 'Contact',
+  'nav.availLong': 'Available for freelance',
+  'nav.availShort': 'Freelance',
   'nav.themeLight': 'Light',
   'nav.themeDark': 'Dark',
   'nav.langLabel': 'Passer le site en français',
 
   /* --- scene ------------------------------------------------------------ */
-  'viz.fallback': '3D rendering unavailable on this device',
   'viz.alt':
-    'Animated reconstruction of an embedded processing chain: a circuit board whose central processor receives three sensor streams, vision, acoustics and radar, then issues a stop command to the machine it drives.',
-  'anno.vision': 'Vision sensor',
-  'anno.chip': 'Compute unit',
-  'anno.machine': 'Driven machine',
-  'hud.note': 'Processing chain, simulation',
-  'hud.acquire': 'Acquisition',
-  'hud.acquireMetric': '3 sensor streams',
-  'hud.track': 'Processing and tracking',
+    'Background animation: a cloud of particles that turns into a sensor, then a bird tracked above a radar, a spectrogram of bat calls, and finally a wind turbine that stops.',
+  'track.bird': 'Bird detected',
+  'track.path': 'Predicted path',
+  'hud.note': 'Detection chain, simulated',
+  'hud.track': 'Tracking',
   'hud.trackMetric': '40 frames/s',
-  'hud.decide': 'Decision',
-  'hud.decideMetric': 'command sent',
-  'hud.act': 'Machine stopped',
-  'hud.actMetric': 'rotor spinning down',
+  'hud.listen': 'Ultrasonic listening',
+  'hud.listenMetric': 'Signal filtered continuously',
+  'hud.run': 'Turbine running',
+  'hud.runMetric': 'Risk zone monitored',
+  'hud.stop': 'Stop commanded',
+  'hud.stopMetric': 'Rotor spinning down',
 
   /* --- heros ------------------------------------------------------------ */
-  'hero.h1a': 'See, hear,',
-  'hero.h1b': 'decide',
+  'hero.w1': 'See,',
+  'hero.w2': 'hear,',
+  'hero.w3': 'decide.',
   'hero.lead':
-    'Embedded and real-time C++ developer. Vision, acoustics and radar: from sensor to decision, in milliseconds.',
+    'Embedded and real-time C++ developer who also builds web products. Available for a full-time role or freelance work.',
   'hero.ctaContact': 'Get in touch',
   'hero.ctaCv': 'Download CV',
 
   /* --- le systeme ------------------------------------------------------- */
-  'sys.title': 'From sensor to machine, in a single cycle.',
-  'sys.lead':
-    'The scene shows the chain I build: three sensor streams, an embedded compute unit, and a command going back out to the machine being driven.',
-  'sys.ch1Title': 'Acquisition',
+  'sys.manifesto':
+    'At Biodiv-Wind, sensors watch over wildlife around wind turbines. My code listens to them, tracks every target and stops the machine before impact.',
+  'chap.verb1': 'See',
+  'sys.ch1Title': 'See.',
   'sys.ch1Body':
-    'Camera, ultrasonic microphone and radar sweep the sector continuously and push their streams to the compute unit, without ever dropping the frame rate.',
-  'sys.ch2Title': 'Processing and tracking',
+    'A camera spots the bird, a Kalman filter tracks its path and predicts the next one. Beyond camera range, the Furuno radar takes over.',
+  'chap.verb2': 'Hear',
+  'sys.ch2Title': 'Hear.',
   'sys.ch2Body':
-    'The compute unit fuses the three sources. Each detected target is tracked by a Kalman filter, which reconstructs its trajectory.',
-  'sys.fusion': 'Sensor fusion',
-  'sys.realtime': 'Real time',
-  'sys.webUi': 'Web supervision',
-  'sys.ch3Title': 'Decision',
+    'Bats hunt with ultrasound. AudioBat captures their calls, separates them from noise and classifies every pass, on hardware with tight resources.',
+  'chap.verb3': 'Decide',
+  'sys.ch3Title': 'Decide.',
   'sys.ch3Body':
-    'When a trajectory crosses the risk zone, the command goes out on the bus to the machine. At Biodiv-Wind, that means a wind turbine stops.',
+    'When a path crosses the risk zone, the command goes out to the turbine, which slows down and stops. Around it, a C++ REST API and a web supervision interface.',
+  'sys.webUi': 'Web supervision',
 
   /* --- experience ------------------------------------------------------- */
   'xp.title': 'Three years on a product installed in the field.',
@@ -110,6 +110,47 @@ export const EN = {
   'prod.immoAlt': 'ImmoCoin computing the cash flow of a property listing on LeBonCoin',
   'prod.shotMissing': 'Screenshot to add',
 
+  /* --- bande ------------------------------------------------------------ */
+  'band.1': 'Available for freelance',
+  'band.2': 'Web apps',
+  'band.3': 'Chrome extensions',
+  'band.4': 'Real-time C++',
+  'band.5': 'Computer vision',
+  'band.6': 'Local AI',
+
+  /* --- freelance -------------------------------------------------------- */
+  'fl.title': 'Your product, built end to end.',
+  'fl.lead':
+    'As a freelancer, I take a project from the first call to production. You deal with one person: the one writing the code.',
+  'fl.o1Title': 'Web apps and SaaS',
+  'fl.o1Body':
+    'Accounts, Stripe payments, dashboards, APIs. Built with Next.js and Node.js, then deployed and monitored in production.',
+  'fl.o1Proof': 'Already in production: Adscope',
+  'fl.o2Title': 'Chrome extensions',
+  'fl.o2Body':
+    'A tool that plugs into the site your team already uses: reading the page, computing, exporting.',
+  'fl.o2Proof': 'Like ImmoCoin on LeBonCoin',
+  'fl.o3Title': 'C++, vision and real time',
+  'fl.o3Body':
+    'Detection prototypes, signal processing, speeding up an existing pipeline, or a REST service in C++.',
+  'fl.o3Proof': 'Three years in the field at Biodiv-Wind',
+  'fl.o4Title': 'AI in your tools',
+  'fl.o4Body':
+    'A language model connected to your documents or workflows, running locally with Ollama when the data must stay in-house.',
+  'fl.processTitle': 'How we work',
+  'fl.s1': 'Scope',
+  'fl.s1Body': 'A call to understand the need, then a written quote: scope, timeline, price.',
+  'fl.s2': 'Prototype',
+  'fl.s2Body': 'An early first version you can actually use, rather than a mockup that promises.',
+  'fl.s3': 'Ship',
+  'fl.s3Body': 'Tests, production deployment and documentation. You get the source code.',
+  'fl.s4': 'Evolve',
+  'fl.s4Body': 'Fixes, maintenance and new features, whenever you need them.',
+  'fl.f1': 'Reply within the day',
+  'fl.f2': 'French or English',
+  'fl.f3': 'In Hérault, France, or remote',
+  'fl.cta': 'Start a project',
+
   /* --- stack ------------------------------------------------------------ */
   'stack.title': 'Stack',
   'stack.lead': 'What I actually use, in production and in the field.',
@@ -142,15 +183,30 @@ export const EN = {
   'path.englishWhere': 'Technical reading and daily written exchanges',
 
   /* --- contact ---------------------------------------------------------- */
-  'contact.title': 'Available for an embedded C++ role.',
-  'contact.lead':
-    'Real time, vision, signal processing, on a product with genuine hardware constraints. Write to me, I answer the same day.',
+  'contact.intentLabel': 'Your request',
+  'contact.intentProject': 'I have a project',
+  'contact.intentHire': "I'm hiring",
+  'contact.subjectProject': 'Freelance project',
+  'contact.subjectHire': 'C++ developer role',
+  'contact.titleProject': "Let's talk about your project.",
+  'contact.titleHire': "Let's talk about the role.",
+  'contact.leadProject':
+    'A few lines are enough to start: the need, the deadline, and what already exists.',
+  'contact.leadHire':
+    "I'm looking for an embedded C++ role: real time, vision or signal processing, on a product with real hardware constraints.",
+  'contact.msgLabel': 'Your message',
+  'contact.msgHelp': 'It opens in your email app, ready to send.',
+  'contact.send': 'Write the email',
+  'contact.waysLabel': 'Contact details',
   'contact.email': 'Email',
+  'contact.copy': 'Copy',
+  'contact.copied': 'Copied',
+  'contact.copiedStatus': 'Address copied to the clipboard',
   'contact.phone': 'Phone',
   'contact.location': 'Location',
   'contact.locationValue': 'Colombiers, Hérault, France. Willing to relocate.',
-  'contact.cta': 'Get in touch',
 
   /* --- pied de page ----------------------------------------------------- */
-  'foot.role': 'Alexandre Schoukroun, embedded and real-time C++ developer',
+  'foot.role': 'Alexandre Schoukroun, embedded C++ developer and freelancer',
+  'foot.top': 'Back to top',
 };

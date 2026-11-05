@@ -28,7 +28,7 @@ export function initReveal() {
 }
 
 export function initScrollSpy() {
-  const links = [...document.querySelectorAll('.nav__links a[href^="#"]')];
+  const links = [...document.querySelectorAll('.nav__links a[href^="#"], .avail[href^="#"]')];
   if (!links.length) return;
 
   const byId = new Map();

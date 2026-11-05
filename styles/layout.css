@@ -1,7 +1,7 @@
 /* ==========================================================================
    layout.css
-   Coquille, grille 12 colonnes, navigation, rythme des sections,
-   et la "stage" : bloc a canvas colle qui porte le heros et le systeme.
+   Coquille, navigation, couches fixes (scene, calques), emplacements de la
+   scene, rythme des sections, pied de page.
    ========================================================================== */
 
 .shell {
@@ -11,21 +11,11 @@
   padding-inline: var(--gutter);
 }
 
-.grid12 {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  column-gap: var(--s-5);
-}
-@media (max-width: 860px) {
-  .grid12 { grid-template-columns: 1fr; row-gap: var(--s-5); }
-  .grid12 > * { grid-column: 1 / -1 !important; }
-}
-
 /* --- Navigation : une seule ligne, 64px ------------------------------- */
 .nav {
   position: sticky; top: 0; z-index: var(--z-nav);
   height: var(--nav-h);
-  background: color-mix(in srgb, var(--ink-900) 82%, transparent);
+  background: color-mix(in srgb, var(--ink-900) 78%, transparent);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
   border-bottom: var(--hair) solid var(--line);
@@ -41,8 +31,9 @@
   font-weight: 700; font-size: .9rem;
   font-variation-settings: "wdth" 106;
   letter-spacing: -.015em; white-space: nowrap;
+  text-decoration: none;
 }
-.nav__right { display: flex; align-items: center; gap: clamp(.75rem, 2vw, 1.5rem); }
+.nav__right { display: flex; align-items: center; gap: clamp(.6rem, 1.6vw, 1.4rem); }
 .nav__links { display: flex; align-items: center; gap: clamp(.75rem, 2vw, 1.75rem); }
 .nav__links a {
   font-size: .82rem; font-weight: 520; color: var(--fg-2);
@@ -52,84 +43,103 @@
   transition: color var(--dur-2) var(--ease), border-color var(--dur-2) var(--ease);
 }
 .nav__links a:hover, .nav__links a[aria-current="true"] { color: var(--fg); border-bottom-color: var(--accent); }
-/* La barre porte le nom, les liens et DEUX bascules. Elle se degarnit en
-   trois paliers plutot que de deborder : a 860 les liens secondaires, a 620
-   tous sauf Contact, a 380 le nom passe aux initiales. */
-@media (max-width: 860px) { .nav__links a[data-optional] { display: none; } }
+
+/* Disponibilite freelance : le seul point de couleur de la barre. Il porte
+   un etat reel, il n'est pas decoratif. */
+.avail {
+  display: inline-flex; align-items: center; gap: .5rem;
+  font-size: .78rem; font-weight: 600; white-space: nowrap;
+  text-decoration: none; color: var(--fg);
+  padding: .38rem .7rem .38rem .6rem;
+  border: var(--hair) solid color-mix(in srgb, var(--accent) 55%, var(--line-2));
+  transition: background var(--dur-2) var(--ease), color var(--dur-2) var(--ease);
+}
+.avail:hover, .avail[aria-current="true"] { background: var(--accent); color: var(--accent-ink); }
+.avail__dot {
+  width: 7px; height: 7px; background: var(--accent); flex: none;
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent);
+  animation: availPulse 2.4s var(--ease-io) infinite;
+}
+.avail:hover .avail__dot, .avail[aria-current="true"] .avail__dot { background: var(--accent-ink); }
+@keyframes availPulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); }
+  70%, 100% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent) 0%, transparent); }
+}
+.avail__short { display: none; }
+
+/* La barre se degarnit par paliers plutot que de deborder. */
+@media (max-width: 1180px) {
+  .avail__long { display: none; }
+  .avail__short { display: inline; }
+}
+@media (max-width: 960px) { .nav__links a[data-optional] { display: none; } }
 @media (max-width: 620px) {
-  .nav__links a:not([data-keep]) { display: none; }
+  .nav__links a { display: none; }
   .nav__in { gap: var(--s-3); }
-  .nav__right { gap: var(--s-3); }
+  .nav__right { gap: var(--s-2); }
   .nav__name { font-size: .78rem; }
 }
-@media (max-width: 380px) {
+@media (max-width: 440px) {
   .nav__name { font-size: 0; }
   .nav__name::after { content: "A. Schoukroun"; font-size: .78rem; }
+  .avail { padding-inline: .5rem; gap: .4rem; }
+}
+
+/* --- Couches fixes ------------------------------------------------------
+   La scene couvre l'ecran derriere le contenu. 100lvh et non 100dvh : sur
+   telephone, la barre d'adresse qui se replie redimensionnerait le canvas a
+   chaque defilement.                                                     */
+.gl {
+  position: fixed; left: 0; top: 0;
+  width: 100%; height: 100vh; height: 100lvh;
+  z-index: var(--z-gl);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.6s var(--ease);
+}
+.gl.is-live { opacity: 1; }
+
+.overlay {
+  position: fixed; inset: 0;
+  z-index: var(--z-overlay);
+  pointer-events: none;
+  opacity: 0;
+  overflow: hidden;
+}
+
+main { position: relative; z-index: var(--z-main); }
+
+/* --- Emplacements de la scene -------------------------------------------
+   Des boites vides que la scene lit pour savoir ou poser ses formes. Elles
+   ne dessinent rien tant que WebGL tourne.                               */
+.slot { position: relative; pointer-events: none; }
+
+/* Sans WebGL, ou sans module : l'emplacement montre un motif radar en CSS,
+   pour ne pas laisser un trou dans la composition. */
+:root.no-gl .slot:not(.slot--sky),
+:root:not(.js) .slot:not(.slot--sky) {
+  background:
+    radial-gradient(circle at 50% 50%, transparent 0 24%, var(--line) 24.3% 24.6%, transparent 25% 49%, var(--line) 49.3% 49.6%, transparent 50%),
+    conic-gradient(from 0deg at 50% 50%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 22%);
+  -webkit-mask: radial-gradient(circle at 50% 50%, #000 0 50%, transparent 50.5%);
+  mask: radial-gradient(circle at 50% 50%, #000 0 50%, transparent 50.5%);
 }
 
 /* --- Rythme des sections ---------------------------------------------- */
-.section { padding-block: clamp(var(--s-8), 11vh, var(--s-10)); position: relative; }
-.section + .section { border-top: var(--hair) solid var(--line); }
-.section__head { margin-bottom: var(--s-7); }
-.section__head h2 { max-width: 18ch; }
+.section { padding-block: clamp(var(--s-8), 13vh, var(--s-10)); position: relative; }
+.section__head { margin-bottom: var(--s-8); max-width: 62rem; }
+.section__head h2 { max-width: 20ch; }
 .section__head .lead { margin-top: var(--s-4); }
 
-/* --- Stage : canvas colle + flux de contenu par-dessus ---------------- */
-.stage { position: relative; }
-
-.stage__viz {
-  position: sticky; top: 0;
-  height: 100dvh; width: 100%;
-  z-index: var(--z-viz);
-  overflow: hidden;
-  background: var(--ink-900);
-}
-.stage__canvas { width: 100%; height: 100%; display: block; opacity: 0; transition: opacity 1.1s var(--ease); }
-.stage__canvas.is-live { opacity: 1; }
-
-.stage__scrim { position: absolute; inset: 0; pointer-events: none; }
-.stage__scrim--l { background: var(--scrim); }
-/* Voile droit a zero par defaut : sans JS le heros reste correct, et les
-   chapitres gardent leur filet de separation pour porter le texte. */
-.stage__scrim--r { background: var(--scrim-mirror); opacity: 0; }
-
-.stage__flow { position: relative; z-index: var(--z-flow); margin-top: -100dvh; }
-
-.stage__panel { min-height: 100dvh; display: flex; align-items: center; }
-
-/* Le bloc scene demarre SOUS la barre collante : un premier panneau de 100dvh
-   depasserait toujours le pli de la hauteur de cette barre, et le bouton
-   d'appel finirait hors ecran. On lui retire donc cette hauteur. */
-.stage__panel:first-child { min-height: calc(100dvh - var(--nav-h)); }
-
-/* Sur petit ecran le canvas reste epingle, comme au bureau : c'est lui qui
-   porte le recit. Ce qui change, c'est la place du texte. En paysage il occupe
-   une colonne laterale ; en portrait il n'y a pas de cote libre, alors il
-   descend en BAS de l'ecran et la scene garde tout le haut. Un seul voile
-   suffit alors, monte du bas. */
-@media (max-width: 860px) {
-  .stage__panel {
-    align-items: flex-end;
-    padding-top: var(--s-5);
-    padding-bottom: var(--s-6);
-  }
-  .stage__scrim--l {
-    background: linear-gradient(to top,
-      var(--ink-900) 0%,
-      color-mix(in srgb, var(--ink-900) 90%, transparent) 30%,
-      color-mix(in srgb, var(--ink-900) 45%, transparent) 52%,
-      transparent 72%);
-  }
-  .stage__scrim--r { display: none; }
-}
-
 /* --- Pied de page ------------------------------------------------------ */
+footer { position: relative; z-index: var(--z-main); }
 .foot {
   border-top: var(--hair) solid var(--line);
   padding-block: var(--s-6) var(--s-7);
   display: flex; flex-wrap: wrap; gap: var(--s-4) var(--s-6);
   align-items: baseline; justify-content: space-between;
 }
+.foot__links { display: flex; flex-wrap: wrap; gap: var(--s-5); }
 
 /* --- Grain : fixe, jamais dans un conteneur qui defile ---------------- */
 .grain {
@@ -138,6 +148,4 @@
   background-image: repeating-conic-gradient(var(--fg) 0% 25%, transparent 0% 50%);
   background-size: 3px 3px;
 }
-/* Pas de mix-blend-mode : il force toute la page dans un contexte de
-   composition et coute cher au defilement pour un gain invisible a 3 %. */
 @media (max-width: 860px), (prefers-reduced-motion: reduce) { .grain { display: none; } }

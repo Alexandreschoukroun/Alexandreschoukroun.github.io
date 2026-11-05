@@ -3,6 +3,27 @@
 Site statique. Aucune étape de build, aucun framework. HTML, CSS natif et
 modules ES. La scène 3D est en Three.js, chargée depuis un CDN via `importmap`.
 
+## Le concept
+
+Une seule scène WebGL, fixe derrière toute la page : un nuage d'environ
+42 000 particules (16 000 sur petit appareil) qui change de forme au fil des
+sections. L'histoire va du bruit au signal.
+
+| Section | Forme | Ce qui bouge |
+|---|---|---|
+| Héros | un capteur sphérique | naît d'un nuage de bruit au chargement, une ligne de scan le parcourt, la souris écarte les particules |
+| Manifeste | poussière | la phrase s'allume mot à mot au défilement |
+| Voir | un oiseau au-dessus d'un radar | battement d'ailes, balayage radar, cadre de suivi HTML et trajectoire prédite |
+| Entendre | un spectrogramme 3D | des cris de chauve-souris (balayages en fréquence) défilent |
+| Décider | une éolienne et son parc | au premier tiers du chapitre la consigne part, une onde se propage, le rotor s'arrête |
+| Expérience, produits, stack, parcours | poussière | parallax au défilement, les points proches vont plus vite |
+| Freelance | des blocs empilés | une vague de lumière monte dans la structure |
+| Contact | le prénom, écrit en points | un reflet le traverse |
+
+Le titre « Voir, entendre, décider. » sert de sommaire : au défilement, les
+trois mots s'écartent, puis chaque verbe a son chapitre, avec le verbe en
+contour géant qui traverse l'écran en parallax.
+
 ## Démarrer
 
 Le site utilise des modules ES : il doit être **servi en HTTP**. Un double-clic
@@ -25,32 +46,40 @@ sous la classe `js`, posée par le script du `<head>` et **retirée après 1,8 s
 `main.js` n'a pas démarré**. Une erreur JS, un CDN injoignable ou un `file://`
 laissent donc une page complète, jamais une page blanche.
 
+Sans WebGL 2, ou si Three.js ne charge pas, la racine reçoit `no-gl` : chaque
+emplacement de la scène affiche un motif radar en CSS, et les chapitres cessent
+d'être collés (sinon la page offrirait six écrans de vide).
+
 ## Tests
 
 ```bash
-npm install            # three et puppeteer-core, pour les tests seulement
-npm test               # les deux suites
-npm run test:scene       # geometrie, machine a etats, cadrage (hors navigateur)
-npm run test:page        # vrai Chrome : erreurs console, scene, traduction
+npm install              # three et puppeteer-core, pour les tests seulement
+npm test                 # les trois suites
+npm run test:scene       # geometrie, enchainement, cadrage (hors navigateur)
+npm run test:page        # vrai Chrome : console, scene, traduction, contact
 npm run test:responsive  # 7 largeurs, de 375 a 1440
 npm run shots            # captures des plans dans tests/shots/
 ```
 
-`test:page` pilote le Chrome deja installe via `puppeteer-core`, donc rien a
-telecharger. Il attrape ce qu'aucun test hors navigateur ne voit : une scene
-qui leve au montage et dont l'erreur est avalee par le repli, un canvas reste
-transparent, une cle de traduction absente.
+**`test:scene`** construit les sept nuages de points avec le vrai code de
+production, sans WebGL. Il vérifie ce qui casse en silence : NaN, plages
+d'index qui ne correspondent plus à la géométrie (une pale doit rester dans le
+disque du rotor, l'oiseau au-dessus du radar), rotations de vue inversibles.
+Il pose ensuite chaque forme dans une boîte comme le fait la page, la projette
+avec une vraie caméra three.js et contrôle qu'elle tient dans sa boîte,
+perspective comprise, au bureau comme sur téléphone.
 
-Le test monte la scène hors navigateur, avec le vrai code de production et sans
-WebGL. Il vérifie ce qui casse en silence : NaN, index hors bornes, normales
-dégénérées, pistes cuivre qui déborderaient du substrat, étapes du cycle jamais
-atteintes.
+**`test:page`** pilote le Chrome déjà installé via `puppeteer-core`. Il attrape
+ce qu'aucun test hors navigateur ne voit : une scène qui lève au montage, une
+clé de traduction absente, et surtout **le récit** : pour chaque section, la
+forme affichée doit être la bonne (la scène l'expose dans `data-shape` sur le
+canvas). Il vérifie aussi que la consigne d'arrêt part dans le chapitre
+Décider, et que le sélecteur du contact change titre et objet du mail.
 
-Il vérifie surtout le **cadrage**. Pour chacun des cinq plans, les objets qui
-comptent sont projetés en coordonnées écran et le test contrôle qu'ils tiennent
-dans l'image, du bon côté : la scène à droite dans le héros où le texte occupe
-la colonne de gauche, le sujet à gauche dans les chapitres où le texte passe à
-droite. C'est ce qui remplace le fait de regarder le rendu.
+**`test:responsive`** vérifie à chaque largeur : aucun débordement horizontal,
+navigation sur une ligne, titre en trois lignes maximum, bouton d'appel visible
+sans défiler, zones tactiles de 24 px, et pour chaque chapitre que la forme a
+sa place à l'écran sans passer sous le texte.
 
 `three` est épinglé à la même version dans `package.json` et dans l'`importmap`
 de `index.html`. **Si vous changez l'une, changez l'autre**, sinon le test ne
@@ -61,26 +90,30 @@ valide plus le code qui part en production.
 ```
 index.html              structure et contenu
 styles/
-  tokens.css            couleur, type, espace, profondeur, z-index
+  tokens.css            couleur, type, espace, couches z
   base.css              reset, typographie, accessibilité
-  layout.css            coquille, grille, navigation, bloc scène
-  components.css        boutons, reveals, puces, HUD
+  layout.css            coquille, navigation, couches fixes, emplacements
+  components.css        boutons, releve, cadre de suivi, formulaire
   sections.css          une famille de mise en page par section
 scripts/
   main.js               point d'entrée
-  core/loop.js          boucle rAF unique de la page
+  core/loop.js          boucle rAF unique, phases lecture puis ecriture
   core/theme.js         bascule clair / sombre
   core/i18n.js          bascule francais / anglais
   i18n/en.js            dictionnaire anglais
   core/reveal.js        apparitions et lien de nav actif
-  fx/parallax.js        décalage au défilement
-  scene/index.js        assemblage de la scène 3D
-  scene/board.js        carte, SoC, pistes cuivre routées en angles droits
-  scene/signals.js      capteurs vision, acoustique, radar, et impulsions
-  scene/pipeline.js     machine à états du cycle temps réel
-  scene/turbine.js      la machine pilotée, en bout de chaîne
-  scene/terrain.js      plan de référence lointain
-  scene/camera-rig.js   caméra pilotée par le défilement
+  fx/progress.js        variable --p de defilement, lue par le CSS
+  fx/parallax.js        decalage des en-tetes de section
+  fx/words.js           decoupe du manifeste en mots
+  fx/stack-cards.js     pile collee des cartes produit
+  fx/marquee.js         bande freelance, pilotee par la vitesse
+  fx/magnetic.js        boutons d'appel attires par le pointeur
+  ui/contact.js         selecteur projet / recrutement, mail compose
+  scene/index.js        rendu, cadrage, suivi de l'oiseau, releve
+  scene/shapes.js       les sept nuages de points (fonctions pures)
+  scene/shaders.js      morphing, animations par forme, pointeur
+  scene/story.js        emplacements HTML vers formes et cadrage
+  scene/text-points.js  echantillonnage du prenom dans un canvas 2D
   scene/palette.js      lecture des couleurs dans les tokens CSS
 assets/img/             captures servies en WebP, sources PNG dans source/
 tests/                  tests hors navigateur, page, responsive
@@ -88,32 +121,62 @@ tests/                  tests hors navigateur, page, responsive
 
 ## Choix techniques
 
-**Une seule boucle rAF.** Aucun `addEventListener('scroll')` sur le site. La
-position de défilement est lue une fois par frame dans `core/loop.js`, au moment
-où l'on va de toute façon écrire dans le DOM. Les apparitions et le lien de
-navigation actif passent par `IntersectionObserver`.
+**Le cadrage 3D est décidé par le CSS.** Chaque forme est rattachée à un
+élément vide de la page qui porte `data-shape` (`.slot`). La scène lit sa
+boîte à chaque image et y pose la forme. Le responsive se règle donc comme le
+reste de la page, avec des media queries, et la 3D suit. Un emplacement
+`data-slot="screen"` couvre l'écran (la poussière) : l'élément ne dit alors que
+*quand* la forme apparaît.
+
+**La ligne de lecture est le milieu de l'écran.** On cherche les deux
+emplacements qui l'encadrent et la transition avance de l'un à l'autre, avec un
+palier pour que la forme tienne près de chaque emplacement. Un emplacement
+collé (chapitres) reste au milieu de l'écran tant qu'il est épinglé : la forme
+y tient sans code de plus.
+
+**Tout le mouvement est sur le GPU.** Chaque particule porte ses positions dans
+les sept formes. Le CPU ne pousse que quelques uniformes par image : les deux
+formes en cours, l'avancée, le temps, le pointeur. Chaque particule part avec
+un léger décalage propre et traverse une turbulence à mi-trajet, ce qui donne
+un flux plutôt qu'un fondu. Les plages d'index (`PART`) et les rotations de vue
+sont injectées dans le shader depuis `shapes.js` : un seul endroit fait foi.
+
+**Une seule boucle rAF, en deux phases.** Aucun `addEventListener('scroll')`.
+Les abonnés `read` mesurent (positions des emplacements, des blocs collés),
+puis les abonnés `write` écrivent (styles, rendu). Une lecture après une
+écriture forcerait un recalcul de mise en page à chaque image.
+
+**Les effets de défilement passent par `--p`.** `fx/progress.js` pose sur
+chaque élément `data-progress` une variable CSS de 0 à 1 ; le CSS en fait une
+translation (verbes géants, mots du héros), une opacité (manifeste, étapes) ou
+le tracé d'une ligne (méthode freelance). Un seul mécanisme, pas de code par
+effet.
 
 **Le parallax écrit dans `translate`, pas dans `transform`.** Les mêmes éléments
-portent une transformation d'apparition ; utiliser les deux propriétés
-indépendantes évite qu'elles s'écrasent.
+portent une transformation d'apparition ; les deux propriétés indépendantes ne
+s'écrasent pas.
 
-**La scène 3D lit les tokens CSS.** Aucune couleur n'est codée en dur dans le
-WebGL. Changer de thème déclenche `theme:change`, la scène relit les variables
-et met à jour ses matériaux sans être reconstruite.
+**La scène lit les tokens CSS.** `--scene-particle` et `--scene-accent`.
+Changer de thème déclenche `theme:change` ; en sombre les points s'additionnent
+et brillent, en clair ils se superposent normalement (l'addition tendrait vers
+le blanc et ferait disparaître la forme).
 
-**Le cadrage est déclaratif.** Chaque repère de caméra vise un point et applique
-un décalage latéral en unités monde le long de son vecteur droit. Positif pousse
-le sujet à gauche de l'image, négatif à droite. Viser un point fixe ne suffirait
-pas : le décalage voulu dépend de l'orientation de la caméra, qui change à
-chaque plan.
+**Mouvement réduit.** Les formes changent par coupe franche, sans turbulence ni
+animation continue, et la scène ne redessine que si quelque chose a changé. Les
+mots, le manifeste, la bande et les cartes restent immobiles.
 
-**Trois niveaux de repli.** Pas de WebGL, ou Three.js injoignable : le bloc
-affiche une composition typographique et le reste de la page fonctionne.
-`prefers-reduced-motion` : la scène rend une seule image fixe, le canvas cesse
-d'être collant, parallax et apparitions sont désactivés.
+**Chargement.** Three.js n'est demandé qu'après le premier rendu, via
+`requestIdleCallback`, pour ne pas peser sur le LCP. Le canvas fait `100lvh` :
+sur téléphone, la barre d'adresse qui se replie ne le redimensionne pas.
 
-**Chargement.** Three.js pèse lourd ; il n'est demandé qu'après le premier
-rendu, via `requestIdleCallback`, pour ne pas peser sur le LCP.
+## Le contact
+
+Le site est statique : le formulaire n'envoie rien à un serveur. Il compose un
+mail dans la messagerie du visiteur, objet et message pré-remplis, selon le
+public choisi (« J'ai un projet » ou « Je recrute »). Sans JavaScript, le
+formulaire fonctionne encore en GET vers `mailto:`, de façon plus brute. Le
+bouton « Démarrer un projet » de la section freelance ouvre le contact en mode
+projet.
 
 ## Langues
 
@@ -125,51 +188,29 @@ pour les attributs. Une cle absente laisse le texte francais en place.
 `?lang=en` force la langue a l'ouverture, ce qui rend un lien anglais
 partageable. Le choix est ensuite retenu dans `localStorage`.
 
-Le HUD de la scene fait exception : son texte est produit par le pipeline et
-non par le HTML, il ecoute donc l'evenement `lang:change`.
+Trois exceptions écoutent `lang:change` : le relevé de la scène (écrit par le
+code), le manifeste (redécoupé en mots après traduction) et l'objet du mail
+(relu dans `data-subject`).
 
 Le test de page verifie que **toute cle posee dans le HTML existe dans le
-dictionnaire**, et qu'aucune entree du dictionnaire ne sert a rien. Chercher
-des accents residuels ne marche pas : Beziers et Baccalaureat en gardent.
+dictionnaire**, et qu'aucune entree du dictionnaire ne sert a rien.
 
 ## Responsive
 
-`test:responsive` ouvre la page a sept largeurs, de l'iPhone SE au bureau, et
-verifie a chacune : aucun debordement horizontal, aucun element hors cadre,
-navigation sur une seule ligne, titre en trois lignes maximum.
+`test:responsive` ouvre la page a sept largeurs, de l'iPhone SE au bureau.
 
-Deux points meritent une explication, parce qu'ils ne se devinent pas.
+**La barre se degarnit par paliers.** A 1180 le badge freelance passe a sa
+forme courte, a 960 les liens secondaires disparaissent, a 620 tous les liens,
+a 440 le nom passe aux initiales.
 
-**La barre se degarnit en trois paliers.** Elle porte le nom, les liens et deux
-bascules, ce qui ne tient pas sous 620 px. A 860 les liens secondaires
-disparaissent, a 620 tous sauf Contact, a 380 le nom passe aux initiales.
-Sans ca la bascule de theme sortait de l'ecran.
+**En portrait, la forme passe au-dessus du texte.** Héros et chapitres
+deviennent une colonne : l'emplacement de la scène prend la place libre, le
+texte se pose en bas. Attention : dans une colonne flex, un emplacement vide
+centré se réduit à une largeur nulle, d'où `align-items: stretch`.
 
 **Les zones tactiles sont etendues par un pseudo-element**, pas par une marge
-interieure. Les liens portent leur soulignement en degrade de fond : une marge
-interieure le decalerait. Le test ne mesure donc pas la boite de l'element mais
-POINTE les quatre coins d'un carre de 24 px, ce qui mesure la zone reellement
-cliquable. Le critere n'est verifie que sur les viewports tactiles.
-
-**Le canvas reste colle en portrait, le texte descend en bas.** En paysage le
-texte occupe une colonne laterale et la scene l'autre. En portrait il n'y a pas
-de cote libre : le texte passe donc en bas de l'ecran et la scene garde tout le
-haut. Un canvas non colle defilerait et disparaitrait des le premier
-mouvement, laissant le visiteur passer du plan d'ouverture directement a la
-section suivante. Le test verifie que le canvas occupe au moins 25 % de l'ecran
-a chacune des cinq etapes du defilement.
-
-**Le premier panneau vaut `100dvh` moins la hauteur de barre.** Le bloc scene
-commence sous la barre collante : un premier panneau de `100dvh` entier
-depasserait toujours le pli d'exactement cette hauteur, et le bouton d'appel
-finirait hors ecran. Le test l'assure explicitement.
-
-**Le fov de la camera est vertical.** En portrait, un fov constant retrecit le
-champ horizontal et rognait la carte sur les cotes. `fitCamera` compense en deux temps :
-il ouvre le fov vertical, plafonne a 76 degres, puis RECULE la camera pour ce
-qui reste a rattraper. Un plein ecran de telephone a une proportion de 0,46, ou
-la compensation par le seul fov demanderait plus de 100 degres et deformerait
-toute la scene ; le recul, lui, ne coute aucune distorsion.
+interieure. Le test POINTE les quatre coins d'un carre de 24 px, ce qui mesure
+la zone reellement cliquable.
 
 ## Contraste
 
@@ -202,27 +243,14 @@ for name, w in {'adscope':1400, 'a2studio':900, 'immocoin':1100}.items():
 EOF
 ```
 
-## À compléter
-
-Ces fichiers sont référencés mais absents. Tant qu'ils manquent, les cartes
-affichent un état vide propre plutôt qu'une image cassée.
-
-| Fichier | Format |
-|---|---|
-| `assets/cv-alexandre-schoukroun.pdf` | le CV, lié depuis le héros |
-| `assets/img/og.png` | vignette de partage, 1200x630 |
-
-Les liens GitHub et LinkedIn du pied de page pointent vers les pages d'accueil :
-remplacez-les par les profils réels.
-
 ## Mise en ligne
 
 En production sur **GitHub Pages** : <https://alexandreschoukroun.github.io>
 
 Le dépôt s'appelle `Alexandreschoukroun.github.io`, ce qui est la seule forme
 servie à la racine du domaine plutôt que dans un sous-chemin. Pages est
-configuré sur la branche `main`, dossier racine. Un `git push` suffit à
-déployer, la reconstruction prend une vingtaine de secondes.
+configuré sur la branche `main`, dossier racine. Un `git push` de `main` suffit
+à déployer, la reconstruction prend une vingtaine de secondes.
 
 `.nojekyll` désactive le traitement Jekyll, actif par défaut sur Pages, pour
 que les fichiers soient servis tels quels.
@@ -231,13 +259,6 @@ que les fichiers soient servis tels quels.
 git push               # deploie
 npm run test:live      # controle le site en ligne dans un vrai navigateur
 ```
-
-`npm run test:live` lance exactement la même suite que `test:page`, mais contre
-l'URL publique. C'est ce qui distingue « le serveur répond » de « la page
-fonctionne » : il charge la scène, lit la console et teste la traduction.
-
-Tout autre hébergeur statique conviendrait aussi (Netlify, Vercel, ou nginx sur
-le VPS) : il suffit de servir la racine du dépôt.
 
 Optimisation suivante, si le site doit tenir sans réseau tiers : héberger les
 deux familles de caractères et `three.module.js` en local plutôt que par CDN.

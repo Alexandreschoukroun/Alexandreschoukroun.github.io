@@ -28,6 +28,8 @@ body {
 
 img, svg, canvas, video { display: block; max-width: 100%; }
 img { height: auto; }
+button, input, textarea { font: inherit; color: inherit; }
+ol, ul { list-style: none; }
 
 /* --- Titres ------------------------------------------------------------ */
 h1, h2, h3, h4 {

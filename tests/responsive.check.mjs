@@ -79,6 +79,9 @@ for (const vp of VIEWPORTS) {
   await page.waitForFunction(
     () => document.documentElement.hasAttribute('data-booted'), { timeout: 15000 }
   ).catch(() => {});
+  // Le site defile en douceur : un test qui saute d'un point a l'autre
+  // mesurerait en plein trajet. On coupe l'animation pour les mesures.
+  await page.addStyleTag({ content: 'html { scroll-behavior: auto !important; }' });
   await new Promise((r) => setTimeout(r, 1800));
 
   console.log(`\n== ${vp.name}  ${vp.w}x${vp.h} ==`);
@@ -89,9 +92,23 @@ for (const vp of VIEWPORTS) {
 
     // Elements qui depassent reellement le bord droit ou gauche du viewport.
     const overflow = [];
+    // Un element rogne par un ancetre qui coupe (overflow hidden ou clip) et
+    // qui tient lui-meme dans l'ecran ne deborde pas : c'est voulu (bande
+    // inclinee, verbes geants, captures tournees). body et html ne comptent pas.
+    const clipped = (el) => {
+      for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
+        const ox = getComputedStyle(a).overflowX;
+        if (ox === 'hidden' || ox === 'clip') {
+          const r = a.getBoundingClientRect();
+          if (r.left >= -1 && r.right <= vw + 1) return true;
+        }
+      }
+      return false;
+    };
     for (const el of document.querySelectorAll('body *')) {
       const cs = getComputedStyle(el);
       if (cs.display === 'none' || cs.visibility === 'hidden' || cs.position === 'fixed') continue;
+      if (clipped(el)) continue;
       const b = el.getBoundingClientRect();
       if (b.width === 0 && b.height === 0) continue;
       const right = b.right - vw;
@@ -110,7 +127,7 @@ for (const vp of VIEWPORTS) {
 
     const nav = document.querySelector('.nav__in');
     const navRect = nav ? nav.getBoundingClientRect() : null;
-    const navItems = [...document.querySelectorAll('.nav__links a, .nav__name, .themebtn')]
+    const navItems = [...document.querySelectorAll('.nav__links a, .nav__name, .avail, .themebtn')]
       .filter((e) => getComputedStyle(e).display !== 'none')
       .map((e) => ({ t: e.textContent.trim().slice(0, 12), ...e.getBoundingClientRect().toJSON() }));
     // On compare les CENTRES verticaux, pas les `top` : des elements de
@@ -165,7 +182,6 @@ for (const vp of VIEWPORTS) {
       h1Lines: h1 ? Math.round(h1.getBoundingClientRect().height / parseFloat(h1cs.lineHeight)) : 0,
       ctaBottom: ctaBox ? Math.round(ctaBox.bottom) : 0,
       ctaVisible: !!ctaBox && ctaBox.bottom <= innerHeight && ctaBox.top >= 0,
-      vizH: Math.round((document.querySelector('.stage__viz')?.getBoundingClientRect().height) || 0),
       bodyFont: parseFloat(getComputedStyle(document.body).fontSize),
     };
   });
@@ -197,34 +213,39 @@ for (const vp of VIEWPORTS) {
 
   if (r.bodyFont < 14) bad(`texte courant a ${r.bodyFont}px`);
 
-  // --- le canvas doit rester visible pendant tout le bloc scene -----------
-  // C'est la regression a empecher : un canvas non colle defile et disparait,
-  // on passe du plan d'ouverture directement a la section suivante.
-  const story = await page.evaluate(async () => {
-    const stage = document.getElementById('stage');
-    const viz = document.querySelector('.stage__viz');
-    if (!stage || !viz) return null;
-    const travel = stage.offsetHeight - innerHeight;
+  // --- les formes de la scene doivent avoir leur place a chaque chapitre --
+  // Chaque chapitre est colle : on se place au milieu et on mesure
+  // l'emplacement de la forme. Il doit etre entierement a l'ecran, occuper au
+  // moins un quart de sa hauteur, et ne pas passer sous le texte.
+  const chapters = await page.evaluate(async () => {
     const out = [];
-    for (const frac of [0, 0.25, 0.5, 0.75, 1]) {
-      window.scrollTo(0, Math.round(stage.offsetTop + frac * travel));
+    for (const id of ['voir', 'entendre', 'decider']) {
+      const sec = document.getElementById(id);
+      window.scrollTo(0, sec.offsetTop + (sec.offsetHeight - innerHeight) / 2);
       await new Promise((r) => setTimeout(r, 260));
-      const b = viz.getBoundingClientRect();
-      const visible = Math.max(0, Math.min(b.bottom, innerHeight) - Math.max(b.top, 0));
-      out.push({ frac, visible: Math.round(visible), pct: Math.round((visible / innerHeight) * 100) });
+      const slot = sec.querySelector('.slot').getBoundingClientRect();
+      const text = sec.querySelector('.chap__text').getBoundingClientRect();
+      const ix = Math.max(0, Math.min(slot.right, text.right) - Math.max(slot.left, text.left));
+      const iy = Math.max(0, Math.min(slot.bottom, text.bottom) - Math.max(slot.top, text.top));
+      out.push({
+        id,
+        inView: slot.top >= -1 && slot.bottom <= innerHeight + 1 && slot.left >= -1 && slot.right <= innerWidth + 1,
+        pct: Math.round((slot.height / innerHeight) * 100),
+        textIn: text.top >= 0 && text.bottom <= innerHeight + 1,
+        overlap: Math.round((ix * iy) / Math.max(1, text.width * text.height) * 100),
+      });
     }
     window.scrollTo(0, 0);
-    return { travel: Math.round(travel), steps: out, sticky: getComputedStyle(viz).position };
+    return out;
   });
-
-  if (story) {
-    const worst = Math.min(...story.steps.map((x) => x.pct));
-    if (worst < 25) {
-      bad(`la scene disparait pendant le defilement (${story.sticky}) : ` +
-        story.steps.map((x) => `${x.frac}=${x.pct}%`).join(' '));
-    } else {
-      ok(`scene visible tout du long (min ${worst}% de l ecran, ${story.sticky})`);
-    }
+  for (const c of chapters) {
+    const why = [];
+    if (!c.inView) why.push('emplacement hors ecran');
+    if (c.pct < 25) why.push(`emplacement trop petit (${c.pct} %)`);
+    if (!c.textIn) why.push('texte coupe');
+    if (c.overlap > 5) why.push(`texte sur la forme (${c.overlap} %)`);
+    if (why.length) bad(`chapitre ${c.id} : ${why.join(', ')}`);
+    else ok(`chapitre ${c.id} : forme sur ${c.pct} % de l ecran, texte degage`);
   }
 
   if (SHOTS) {

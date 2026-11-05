@@ -3,18 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title data-i18n="meta.title">Alexandre Schoukroun, développeur C++ embarqué et temps réel</title>
-<meta name="description" data-i18n-attr="content:meta.description" content="Développeur C++ embarqué et temps réel. Vision par ordinateur, acoustique et radar pour la détection de la faune sur parcs éoliens. Trois produits SaaS en production.">
+<title data-i18n="meta.title">Alexandre Schoukroun, développeur C++ embarqué et freelance</title>
+<meta name="description" data-i18n-attr="content:meta.description" content="Développeur C++ embarqué et temps réel : vision, acoustique et radar pour la détection de la faune sur parcs éoliens. En freelance : applications web, SaaS, extensions Chrome, C++ et IA.">
 <meta name="author" content="Alexandre Schoukroun">
 <link rel="canonical" href="https://alexandreschoukroun.github.io/">
 
 <meta property="og:type" content="profile">
 <meta property="og:locale" content="fr_FR">
-<meta property="og:title" data-i18n-attr="content:meta.title" content="Alexandre Schoukroun, développeur C++ embarqué et temps réel">
-<meta property="og:description" data-i18n-attr="content:meta.ogDescription" content="Trois ans à construire les détecteurs de faune qui arrêtent les éoliennes avant l'impact. C++17, vision par ordinateur, traitement du signal.">
+<meta property="og:title" data-i18n-attr="content:meta.title" content="Alexandre Schoukroun, développeur C++ embarqué et freelance">
+<meta property="og:description" data-i18n-attr="content:meta.ogDescription" content="Trois ans à construire les détecteurs de faune qui arrêtent les éoliennes avant l'impact. Disponible en poste comme en freelance.">
 <meta property="og:image" content="https://alexandreschoukroun.github.io/assets/img/og.png">
 <meta property="og:url" content="https://alexandreschoukroun.github.io/">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#090C0B">
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23090C0B'/%3E%3Crect x='14' y='6' width='4' height='20' fill='%23D8E021'/%3E%3C/svg%3E">
 
@@ -74,6 +75,35 @@
   <p>Lancez <code>npm run dev</code> (ou double-cliquez <code>dev.cmd</code>)
   puis ouvrez <code>http://localhost:5173</code>.</p>
 </div>
+
+<!-- Couches fixes : la scene derriere tout, ses calques au-dessus d'elle,
+     le contenu au-dessus des deux. -->
+<canvas class="gl" id="viz" aria-hidden="true"></canvas>
+<p class="sr-only" data-i18n="viz.alt">
+  Animation de fond : un nuage de particules qui prend tour à tour la forme d'un capteur,
+  d'un oiseau suivi au-dessus d'un radar, d'un spectrogramme de cris de chauve-souris,
+  puis d'une éolienne qui s'arrête.
+</p>
+
+<div class="overlay" id="overlay" aria-hidden="true">
+  <div class="tracker" id="tracker">
+    <i class="tracker__c tracker__c--tl"></i><i class="tracker__c tracker__c--tr"></i>
+    <i class="tracker__c tracker__c--bl"></i><i class="tracker__c tracker__c--br"></i>
+    <span class="tracker__lbl" data-i18n="track.bird">Oiseau détecté</span>
+  </div>
+  <div class="tpath"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <span class="tpath__lbl" id="tpath-lbl" data-i18n="track.path">Trajectoire prédite</span>
+</div>
+
+<div class="hud" id="hud" aria-hidden="true">
+  <div class="hud__row">
+    <span class="hud__dot" id="hud-dot"></span>
+    <span class="hud__state" id="hud-state">Suivi de trajectoire</span>
+  </div>
+  <div id="hud-metric">40 images/s</div>
+  <div class="hud__note" data-i18n="hud.note">Chaîne de détection, simulation</div>
+</div>
+
 <div class="grain" aria-hidden="true"></div>
 
 <header class="nav">
@@ -82,11 +112,15 @@
     <div class="nav__right">
       <nav class="nav__links" aria-label="Sections">
         <a href="#systeme" data-optional data-i18n="nav.system">Système</a>
-        <a href="#experience" data-i18n="nav.experience">Expérience</a>
+        <a href="#experience" data-optional data-i18n="nav.experience">Expérience</a>
         <a href="#produits" data-optional data-i18n="nav.products">Produits</a>
-        <a href="#stack" data-optional data-i18n="nav.stack">Stack</a>
         <a href="#contact" data-keep data-i18n="nav.contact">Contact</a>
       </nav>
+      <a class="avail" href="#freelance">
+        <span class="avail__dot" aria-hidden="true"></span>
+        <span class="avail__long" data-i18n="nav.availLong">Disponible en freelance</span>
+        <span class="avail__short" data-i18n="nav.availShort">Freelance</span>
+      </a>
       <button class="themebtn langbtn" type="button" id="langbtn" aria-label="Switch site to English">
         <span class="langbtn__en">EN</span>
         <span class="langbtn__fr">FR</span>
@@ -102,136 +136,106 @@
 <main id="main">
 
   <!-- ====================================================================
-       Bloc scene : un canvas colle porte le heros puis les trois chapitres.
-       La camera avance vers la nacelle au fil du defilement.
+       1. Heros. Les trois verbes du titre deviennent les trois chapitres :
+       au defilement, ils s'ecartent l'un de l'autre.
        ==================================================================== -->
-  <div class="stage" id="stage">
-
-    <div class="stage__viz">
-      <canvas class="stage__canvas" id="viz" aria-hidden="true"></canvas>
-
-      <div class="vizfallback" id="vizfallback">
-        <p class="mono" data-i18n="viz.fallback">Rendu 3D indisponible sur cet appareil</p>
-        <p class="vizfallback__big">C++</p>
-      </div>
-
-      <!-- Deux voiles : le texte passe de gauche (heros) a droite (chapitres),
-           donc la protection doit changer de cote, sinon elle recouvre la scene. -->
-      <div class="stage__scrim stage__scrim--l" id="scrim-l" aria-hidden="true"></div>
-      <div class="stage__scrim stage__scrim--r" id="scrim-r" aria-hidden="true"></div>
-
-      <div class="annos" id="annos" aria-hidden="true">
-        <span class="anno" data-anchor="vision" data-i18n="anno.vision">Capteur vision</span>
-        <span class="anno" data-anchor="chip" data-i18n="anno.chip">Calculateur</span>
-        <span class="anno" data-anchor="machine" data-i18n="anno.machine">Machine pilotée</span>
-      </div>
-
-      <div class="hud" id="hud" aria-hidden="true">
-        <div class="hud__row">
-          <span class="hud__dot" id="hud-dot"></span>
-          <span class="hud__state" id="hud-state">Balayage du secteur</span>
+  <section class="hero" id="apropos" data-progress="exit">
+    <div class="shell hero__grid">
+      <div class="hero__text">
+        <p class="hero__eyebrow">Alexandre Schoukroun</p>
+        <h1 class="hero__title">
+          <span class="hw" style="--w:0;--dx:-1"><span class="hw__in" data-i18n="hero.w1">Voir,</span></span>
+          <span class="hw" style="--w:1;--dx:.6"><span class="hw__in" data-i18n="hero.w2">entendre,</span></span>
+          <span class="hw hw--em" style="--w:2;--dx:1.4"><span class="hw__in" data-i18n="hero.w3">décider.</span></span>
+        </h1>
+        <p class="lead hero__lead" data-i18n="hero.lead">
+          Développeur C++ embarqué et temps réel, je construis aussi des produits web.
+          Disponible en poste comme en freelance.
+        </p>
+        <div class="hero__cta">
+          <a class="btn btn--solid" href="#contact" data-magnetic><span class="btn__label" data-i18n="hero.ctaContact">Me contacter</span></a>
+          <a class="btn btn--ghost" href="assets/cv-alexandre-schoukroun.pdf" download>
+            <span data-i18n="hero.ctaCv">Télécharger le CV</span> <span class="btn__arrow" aria-hidden="true">&#8599;</span>
+          </a>
         </div>
-        <div id="hud-metric">40 images/s</div>
-        <div class="hud__note" data-i18n="hud.note">Chaîne de traitement, simulation</div>
       </div>
-
-      <p class="sr-only" data-i18n="viz.alt">
-        Reconstitution animée d'une chaîne de traitement embarquée : une carte électronique
-        dont le calculateur central reçoit trois flux capteur, vision, acoustique et radar,
-        puis émet une commande d'arrêt vers la machine qu'elle pilote.
-      </p>
+      <div class="slot slot--hero" data-shape="sphere" aria-hidden="true"></div>
     </div>
-
-    <div class="stage__flow">
-
-      <!-- 1. Heros -->
-      <section class="hero stage__panel" id="apropos">
-        <div class="shell grid12">
-          <div class="hero__in">
-            <p class="hero__eyebrow reveal">Alexandre Schoukroun</p>
-            <h1 class="reveal" style="--i:1"><span data-i18n="hero.h1a">Voir, entendre,</span> <em data-i18n="hero.h1b">décider</em>.</h1>
-            <p class="lead hero__lead reveal" style="--i:2" data-i18n="hero.lead">
-              Développeur C++ embarqué et temps réel. Vision, acoustique et radar :
-              du capteur à la décision, en quelques millisecondes.
-            </p>
-            <div class="hero__cta reveal" style="--i:3">
-              <a class="btn btn--solid" href="#contact" data-i18n="hero.ctaContact">Me contacter</a>
-              <a class="btn btn--ghost" href="assets/cv-alexandre-schoukroun.pdf" download>
-                <span data-i18n="hero.ctaCv">Télécharger le CV</span> <span class="btn__arrow" aria-hidden="true">&#8599;</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 2. Le systeme, raconte en trois temps -->
-      <section id="systeme">
-        <div class="stage__panel">
-          <div class="shell grid12">
-            <div class="stage__intro reveal">
-              <div class="rule" aria-hidden="true"></div>
-              <h2 data-i18n="sys.title">Du capteur à la machine, en un seul cycle.</h2>
-              <p class="lead" style="margin-top:var(--s-4)" data-i18n="sys.lead">
-                La scène montre la chaîne que je construis : trois flux capteur, un calculateur
-                embarqué, et une commande qui repart vers la machine à piloter.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div class="stage__panel chap" data-chapter="1">
-          <div class="shell grid12">
-            <div class="chap__in reveal">
-              <h2 data-i18n="sys.ch1Title">Acquisition</h2>
-              <p data-i18n="sys.ch1Body">
-                Caméra, micro ultrason et radar balaient le secteur en continu et poussent
-                leurs flux vers le calculateur, sans jamais lâcher la cadence.
-              </p>
-              <div class="chap__tech" aria-label="Technologies">
-                <span>C++17</span><span>OpenCV</span><span>Multithreading</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="stage__panel chap" data-chapter="2">
-          <div class="shell grid12">
-            <div class="chap__in reveal">
-              <h2 data-i18n="sys.ch2Title">Traitement et suivi</h2>
-              <p data-i18n="sys.ch2Body">
-                Le calculateur fusionne les trois sources. Chaque cible détectée est suivie
-                par un filtre de Kalman, qui reconstruit sa trajectoire.
-              </p>
-              <div class="chap__tech" aria-label="Technologies">
-                <span data-i18n="sys.fusion">Fusion de capteurs</span><span data-i18n="stack.kalman">Filtre de Kalman</span><span data-i18n="sys.realtime">Temps réel</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="stage__panel chap" data-chapter="3">
-          <div class="shell grid12">
-            <div class="chap__in reveal">
-              <h2 data-i18n="sys.ch3Title">Décision</h2>
-              <p data-i18n="sys.ch3Body">
-                Quand une trajectoire croise la zone à risque, la consigne part sur le bus
-                vers la machine. Chez Biodiv-Wind, c'est une éolienne qui s'arrête.
-              </p>
-              <div class="chap__tech" aria-label="Technologies">
-                <span>Drogon</span><span>REST</span><span data-i18n="sys.webUi">Supervision web</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-    </div>
-  </div>
+  </section>
 
   <!-- ====================================================================
-       3. Experience
+       2. Le systeme : une phrase qui s'allume, puis trois chapitres colles.
        ==================================================================== -->
-  <section class="section" id="experience">
+  <section class="manifesto" id="systeme" data-shape="dust" data-slot="screen" data-progress="through">
+    <div class="shell">
+      <p class="manifesto__text" data-words data-i18n="sys.manifesto">
+        Chez Biodiv-Wind, des capteurs veillent sur la faune autour des éoliennes.
+        Mon code les écoute, suit chaque cible et arrête la machine avant l'impact.
+      </p>
+    </div>
+  </section>
+
+  <section class="chap chap--l" id="voir" data-progress="pin">
+    <div class="chap__pin">
+      <p class="chap__verb" aria-hidden="true"><span data-i18n="chap.verb1">Voir</span></p>
+      <div class="shell chap__grid">
+        <div class="slot slot--chap" data-shape="voir" aria-hidden="true"></div>
+        <div class="chap__text reveal">
+          <h2 data-i18n="sys.ch1Title">Voir.</h2>
+          <p data-i18n="sys.ch1Body">
+            Une caméra repère l'oiseau, un filtre de Kalman suit sa trajectoire et anticipe
+            la suivante. Hors de portée des caméras, le radar Furuno prend le relais.
+          </p>
+          <div class="chap__tech" aria-label="Technologies">
+            <span>C++17</span><span>OpenCV</span><span data-i18n="stack.kalman">Filtre de Kalman</span><span>Radar Furuno</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chap chap--r" id="entendre" data-progress="pin">
+    <div class="chap__pin">
+      <p class="chap__verb" aria-hidden="true"><span data-i18n="chap.verb2">Entendre</span></p>
+      <div class="shell chap__grid">
+        <div class="slot slot--chap" data-shape="ecoute" aria-hidden="true"></div>
+        <div class="chap__text reveal">
+          <h2 data-i18n="sys.ch2Title">Entendre.</h2>
+          <p data-i18n="sys.ch2Body">
+            Les chauves-souris chassent aux ultrasons. AudioBat capte leurs cris, les isole
+            du bruit et classe chaque passage, sur un matériel aux ressources comptées.
+          </p>
+          <div class="chap__tech" aria-label="Technologies">
+            <span data-i18n="stack.signal">Traitement du signal</span><span data-i18n="stack.acoustics">Acoustique</span><span>Multithreading</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chap chap--l" id="decider" data-progress="pin">
+    <div class="chap__pin">
+      <p class="chap__verb" aria-hidden="true"><span data-i18n="chap.verb3">Décider</span></p>
+      <div class="shell chap__grid">
+        <div class="slot slot--chap" data-shape="turbine" aria-hidden="true"></div>
+        <div class="chap__text reveal">
+          <h2 data-i18n="sys.ch3Title">Décider.</h2>
+          <p data-i18n="sys.ch3Body">
+            Quand une trajectoire croise la zone à risque, la consigne part vers la turbine,
+            qui ralentit puis s'arrête. Autour, une API REST en C++ et une supervision web.
+          </p>
+          <div class="chap__tech" aria-label="Technologies">
+            <span>Drogon</span><span>REST</span><span data-i18n="sys.webUi">Supervision web</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       3. Experience : le nom de l'employeur reste colle pendant qu'on lit.
+       ==================================================================== -->
+  <section class="section" id="experience" data-shape="dust" data-slot="screen">
     <div class="shell">
       <div class="section__head reveal" data-parallax="0.05">
         <div class="rule" aria-hidden="true"></div>
@@ -244,61 +248,60 @@
       </div>
 
       <div class="xp">
-
-        <article class="xp__row reveal">
-          <div>
+        <article class="xp__row">
+          <div class="xp__rail">
             <p class="xp__when">2023 - 2026</p>
             <p class="xp__org">Biodiv-Wind</p>
             <p class="xp__role" data-i18n="xp.bwRole">Développeur logiciel embarqué, alternance</p>
-            <p class="mono" style="margin-top:var(--s-4)" data-i18n="xp.bwRail">
+            <p class="mono xp__note" data-i18n="xp.bwRail">
               3 systèmes de détection<br>Architecture au déploiement
             </p>
           </div>
           <div class="xp__body">
-            <p data-i18n="xp.bwBody">
+            <p class="reveal" data-i18n="xp.bwBody">
               J'ai porté les briques logicielles de détection et de décision qui équipent les
               parcs éoliens, de la preuve de concept à la version installée sur site. Sprints,
               revues de code, pair programming, tests d'abord.
             </p>
             <div class="units">
-              <div class="unit">
-                <h4>SafeWind</h4>
+              <a class="unit reveal" href="#voir">
+                <h3>SafeWind</h3>
                 <p data-i18n="xp.safewindBody">
                   Vision temps réel : acquisition caméra, détection des oiseaux et suivi de leur
                   trajectoire par filtre de Kalman, puis arrêt de la turbine quand l'oiseau entre
                   en zone à risque.
                 </p>
-              </div>
-              <div class="unit">
-                <h4>AudioBat</h4>
+              </a>
+              <a class="unit reveal" style="--i:1" href="#entendre">
+                <h3>AudioBat</h3>
                 <p data-i18n="xp.audiobatBody">
                   Détection acoustique des chauves-souris : acquisition des ultrasons, traitement
                   du signal et classification des passages, sur matériel à ressources contraintes.
                 </p>
-              </div>
-              <div class="unit">
-                <h4>Radar</h4>
+              </a>
+              <a class="unit reveal" style="--i:2" href="#voir">
+                <h3>Radar</h3>
                 <p data-i18n="xp.radarBody">
                   Intégration d'un radar Furuno et exploitation des échos pour détecter les
                   approches hors de portée des caméras, avec fusion des sources de détection.
                 </p>
-              </div>
+              </a>
             </div>
-            <p data-i18n="xp.bwServices">
+            <p class="reveal" data-i18n="xp.bwServices">
               Côté services : serveurs REST en C++ avec Drogon, interfaces de supervision web
               et déploiement sur les machines de terrain.
             </p>
           </div>
         </article>
 
-        <article class="xp__row reveal">
-          <div>
+        <article class="xp__row">
+          <div class="xp__rail">
             <p class="xp__when">2022 - 2023</p>
             <p class="xp__org">Teoola Pro</p>
             <p class="xp__role" data-i18n="xp.teoolaRole">Développeur web, deux stages BTS SIO</p>
           </div>
           <div class="xp__body">
-            <p data-i18n="xp.teoolaBody">
+            <p class="reveal" data-i18n="xp.teoolaBody">
               Sites et applications pour des clients variés, en PHP et Symfony, du front-end à
               la mise en production. Premier contact avec le rythme d'une agence et la livraison
               face au client.
@@ -306,28 +309,27 @@
           </div>
         </article>
 
-        <article class="xp__row reveal">
-          <div>
+        <article class="xp__row">
+          <div class="xp__rail">
             <p class="xp__when">2021 - 2023</p>
             <p class="xp__org">Auchan</p>
             <p class="xp__role" data-i18n="xp.auchanRole">Préparateur livreur, Béziers</p>
           </div>
           <div class="xp__body">
-            <p data-i18n="xp.auchanBody">
+            <p class="reveal" data-i18n="xp.auchanBody">
               Préparation de commandes et gestion des stocks en parallèle des études. Trois ans
               de travail cadencé, de fiabilité et de relation client directe.
             </p>
           </div>
         </article>
-
       </div>
     </div>
   </section>
 
   <!-- ====================================================================
-       4. Produits
+       4. Produits : cartes qui se collent et s'empilent.
        ==================================================================== -->
-  <section class="section" id="produits">
+  <section class="section" id="produits" data-shape="dust" data-slot="screen">
     <div class="shell">
       <div class="section__head reveal" data-parallax="0.05">
         <div class="rule" aria-hidden="true"></div>
@@ -338,85 +340,211 @@
         </p>
       </div>
 
-      <div class="bento">
-
-        <article class="card card--lead reveal">
-          <div class="shot">
-            <img src="assets/img/adscope.webp" width="1400" height="1081" loading="lazy"
-                 data-i18n-attr="alt:prod.adscopeAlt" alt="Page d'accueil d'AdScope montrant l'analyse d'une recherche dans la Facebook Ad Library"
-                 onerror="this.closest('.shot').classList.add('is-empty')">
-            <div class="shot__empty"><b>adscope.cloud</b><span data-i18n="prod.shotMissing">Capture à ajouter</span></div>
-          </div>
-          <div class="card__body">
-            <p class="card__tag" data-i18n="prod.adscopeTag">SaaS, clients payants</p>
-            <h3>Adscope</h3>
-            <p data-i18n="prod.adscopeBody">
-              Extension Chrome et tableau de bord qui transforment la Facebook Ad Library en
-              outil d'analyse : estimation des budgets publicitaires, détection des boutiques
-              Shopify, lecture des accroches, export CSV. Freemium, audience anglophone.
-            </p>
-            <div class="card__meta">
-              <span>Next.js</span><span>React</span><span>API REST</span><span>Stripe</span>
-              <a class="link" href="https://adscope.cloud" target="_blank" rel="noopener">
+      <div class="pstack">
+        <article class="pcard" style="--k:0" data-progress="through">
+          <div class="pcard__in">
+            <div class="pcard__body">
+              <p class="pcard__tag" data-i18n="prod.adscopeTag">SaaS, clients payants</p>
+              <h3>Adscope</h3>
+              <p data-i18n="prod.adscopeBody">
+                Extension Chrome et tableau de bord qui transforment la Facebook Ad Library en
+                outil d'analyse : estimation des budgets publicitaires, détection des boutiques
+                Shopify, lecture des accroches, export CSV. Freemium, audience anglophone.
+              </p>
+              <div class="pcard__meta">
+                <span>Next.js</span><span>React</span><span>API REST</span><span>Stripe</span>
+              </div>
+              <a class="link pcard__link" href="https://adscope.cloud" target="_blank" rel="noopener">
                 adscope.cloud <span aria-hidden="true">&#8599;</span>
               </a>
             </div>
-          </div>
-        </article>
-
-        <article class="card card--side reveal" style="--i:1">
-          <div class="shot">
-            <img src="assets/img/a2studio.webp" width="900" height="776" loading="lazy"
-                 data-i18n-attr="alt:prod.a2Alt" alt="Page d'accueil d'A2 Studio, agence web"
-                 onerror="this.closest('.shot').classList.add('is-empty')">
-            <div class="shot__empty"><b>A2 Studio</b><span data-i18n="prod.shotMissing">Capture à ajouter</span></div>
-          </div>
-          <div class="card__body">
-            <p class="card__tag" data-i18n="prod.a2Tag">Agence web, cofondée</p>
-            <h3>A2 Studio</h3>
-            <p data-i18n="prod.a2Body">
-              Sites, image de marque, référencement local et hébergement pour des entreprises
-              locales. Le but est qu'une petite structure existe en ligne aussi bien
-              qu'une grande.
-            </p>
-            <div class="card__meta">
-              <span>React</span><span>PHP</span><span>SEO local</span><span data-i18n="prod.a2Meta4">Hébergement</span>
+            <div class="shot pcard__shot">
+              <img src="assets/img/adscope.webp" width="1400" height="1081" loading="lazy"
+                   data-i18n-attr="alt:prod.adscopeAlt" alt="Page d'accueil d'AdScope montrant l'analyse d'une recherche dans la Facebook Ad Library"
+                   onerror="this.closest('.shot').classList.add('is-empty')">
+              <div class="shot__empty"><b>adscope.cloud</b><span data-i18n="prod.shotMissing">Capture à ajouter</span></div>
             </div>
           </div>
         </article>
 
-        <article class="card card--wide reveal" style="--i:2">
-          <div class="shot">
-            <img src="assets/img/immocoin.webp" width="1100" height="757" loading="lazy"
-                 data-i18n-attr="alt:prod.immoAlt" alt="ImmoCoin calculant le cashflow d'une annonce immobilière sur LeBonCoin"
-                 onerror="this.closest('.shot').classList.add('is-empty')">
-            <div class="shot__empty"><b>immocoin.pro</b><span data-i18n="prod.shotMissing">Capture à ajouter</span></div>
+        <article class="pcard pcard--flip" style="--k:1" data-progress="through">
+          <div class="pcard__in">
+            <div class="pcard__body">
+              <p class="pcard__tag" data-i18n="prod.a2Tag">Agence web, cofondée</p>
+              <h3>A2 Studio</h3>
+              <p data-i18n="prod.a2Body">
+                Sites, image de marque, référencement local et hébergement pour des entreprises
+                locales. Le but est qu'une petite structure existe en ligne aussi bien
+                qu'une grande.
+              </p>
+              <div class="pcard__meta">
+                <span>React</span><span>PHP</span><span>SEO local</span><span data-i18n="prod.a2Meta4">Hébergement</span>
+              </div>
+            </div>
+            <div class="shot pcard__shot">
+              <img src="assets/img/a2studio.webp" width="900" height="776" loading="lazy"
+                   data-i18n-attr="alt:prod.a2Alt" alt="Page d'accueil d'A2 Studio, agence web"
+                   onerror="this.closest('.shot').classList.add('is-empty')">
+              <div class="shot__empty"><b>A2 Studio</b><span data-i18n="prod.shotMissing">Capture à ajouter</span></div>
+            </div>
           </div>
-          <div class="card__body">
-            <p class="card__tag" data-i18n="prod.immoTag">Extension Chrome</p>
-            <h3>ImmoCoin</h3>
-            <p data-i18n="prod.immoBody">
-              S'intègre directement aux annonces LeBonCoin et affiche le cashflow, la
-              rentabilité nette et les prix du marché. Trancher un investissement en quelques
-              secondes au lieu d'ouvrir un tableur.
-            </p>
-            <div class="card__meta">
-              <span>Chrome MV3</span><span>Next.js</span>
-              <a class="link" href="https://immocoin.pro" target="_blank" rel="noopener">
+        </article>
+
+        <article class="pcard" style="--k:2" data-progress="through">
+          <div class="pcard__in">
+            <div class="pcard__body">
+              <p class="pcard__tag" data-i18n="prod.immoTag">Extension Chrome</p>
+              <h3>ImmoCoin</h3>
+              <p data-i18n="prod.immoBody">
+                S'intègre directement aux annonces LeBonCoin et affiche le cashflow, la
+                rentabilité nette et les prix du marché. Trancher un investissement en quelques
+                secondes au lieu d'ouvrir un tableur.
+              </p>
+              <div class="pcard__meta">
+                <span>Chrome MV3</span><span>Next.js</span>
+              </div>
+              <a class="link pcard__link" href="https://immocoin.pro" target="_blank" rel="noopener">
                 immocoin.pro <span aria-hidden="true">&#8599;</span>
               </a>
             </div>
+            <div class="shot pcard__shot">
+              <img src="assets/img/immocoin.webp" width="1100" height="757" loading="lazy"
+                   data-i18n-attr="alt:prod.immoAlt" alt="ImmoCoin calculant le cashflow d'une annonce immobilière sur LeBonCoin"
+                   onerror="this.closest('.shot').classList.add('is-empty')">
+              <div class="shot__empty"><b>immocoin.pro</b><span data-i18n="prod.shotMissing">Capture à ajouter</span></div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bande d'annonce : decorative, son contenu est repris dans la section suivante. -->
+  <div class="band-wrap" aria-hidden="true">
+  <div class="band">
+    <div class="band__track">
+      <div class="band__set">
+        <span data-i18n="band.1">Disponible en freelance</span><i></i>
+        <span data-i18n="band.2">Applications web</span><i></i>
+        <span>SaaS</span><i></i>
+        <span data-i18n="band.3">Extensions Chrome</span><i></i>
+        <span data-i18n="band.4">C++ temps réel</span><i></i>
+        <span data-i18n="band.5">Vision par ordinateur</span><i></i>
+        <span data-i18n="band.6">IA locale</span><i></i>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- ====================================================================
+       5. Freelance
+       ==================================================================== -->
+  <section class="section freelance" id="freelance">
+    <div class="shell">
+      <div class="fl__head">
+        <div class="fl__intro reveal">
+          <div class="rule" aria-hidden="true"></div>
+          <h2 data-i18n="fl.title">Votre produit, construit de bout en bout.</h2>
+          <p class="lead" data-i18n="fl.lead">
+            En freelance, je prends un projet du premier appel à la mise en production.
+            Vous avez un seul interlocuteur : la personne qui écrit le code.
+          </p>
+        </div>
+        <div class="slot slot--city" data-shape="city" aria-hidden="true"></div>
+      </div>
+
+      <div class="offers" data-shape="dust" data-slot="screen">
+        <article class="offer offer--web reveal">
+          <div class="offer__text">
+            <h3 data-i18n="fl.o1Title">Applications web et SaaS</h3>
+            <p data-i18n="fl.o1Body">
+              Comptes, paiements Stripe, tableau de bord, API. Développé en Next.js et Node.js,
+              puis déployé et suivi en production.
+            </p>
+            <a class="offer__proof link" href="#produits" data-i18n="fl.o1Proof">Déjà en production : Adscope</a>
+          </div>
+          <div class="offer__visual" aria-hidden="true">
+            <img src="assets/img/adscope.webp" width="1400" height="1081" loading="lazy" alt="">
           </div>
         </article>
 
+        <article class="offer offer--ext reveal" style="--i:1">
+          <div class="offer__text">
+            <h3 data-i18n="fl.o2Title">Extensions Chrome</h3>
+            <p data-i18n="fl.o2Body">
+              Un outil qui se greffe sur le site que vos équipes utilisent déjà : lecture de la
+              page, calculs, export.
+            </p>
+            <a class="offer__proof link" href="#produits" data-i18n="fl.o2Proof">Comme ImmoCoin sur LeBonCoin</a>
+          </div>
+          <div class="offer__visual" aria-hidden="true">
+            <img src="assets/img/immocoin.webp" width="1100" height="757" loading="lazy" alt="">
+          </div>
+        </article>
+
+        <article class="offer offer--rt reveal" style="--i:2">
+          <div class="offer__radar" aria-hidden="true"></div>
+          <div class="offer__text">
+            <h3 data-i18n="fl.o3Title">C++, vision et temps réel</h3>
+            <p data-i18n="fl.o3Body">
+              Prototype de détection, traitement du signal, optimisation d'une chaîne existante
+              ou service REST en C++.
+            </p>
+            <a class="offer__proof link" href="#voir" data-i18n="fl.o3Proof">Trois ans sur le terrain chez Biodiv-Wind</a>
+          </div>
+        </article>
+
+        <article class="offer offer--ai reveal" style="--i:3">
+          <div class="offer__text">
+            <h3 data-i18n="fl.o4Title">IA dans vos outils</h3>
+            <p data-i18n="fl.o4Body">
+              Un modèle de langage branché sur vos documents ou vos processus, en local avec
+              Ollama quand les données ne doivent pas sortir de chez vous.
+            </p>
+          </div>
+          <div class="offer__stack" aria-label="Technologies">
+            <span>Python</span><span>FastAPI</span><span>Ollama</span><span>Node.js</span>
+          </div>
+        </article>
+      </div>
+
+      <div class="process" data-progress="enter">
+        <h3 class="process__title" data-i18n="fl.processTitle">Comment on avance</h3>
+        <ol class="process__steps">
+          <li class="step" style="--i:0">
+            <p class="step__name" data-i18n="fl.s1">Cadrer</p>
+            <p data-i18n="fl.s1Body">Un appel pour comprendre le besoin, puis un devis écrit : périmètre, délai, prix.</p>
+          </li>
+          <li class="step" style="--i:1">
+            <p class="step__name" data-i18n="fl.s2">Prototyper</p>
+            <p data-i18n="fl.s2Body">Une première version tôt, à tester en vrai, plutôt qu'une maquette qui promet.</p>
+          </li>
+          <li class="step" style="--i:2">
+            <p class="step__name" data-i18n="fl.s3">Livrer</p>
+            <p data-i18n="fl.s3Body">Tests, mise en production et documentation. Le code source vous est remis.</p>
+          </li>
+          <li class="step" style="--i:3">
+            <p class="step__name" data-i18n="fl.s4">Faire évoluer</p>
+            <p data-i18n="fl.s4Body">Corrections, maintenance et nouvelles fonctions, quand vous en avez besoin.</p>
+          </li>
+        </ol>
+      </div>
+
+      <div class="fl__foot reveal">
+        <ul class="facts">
+          <li data-i18n="fl.f1">Réponse dans la journée</li>
+          <li data-i18n="fl.f2">Français ou anglais</li>
+          <li data-i18n="fl.f3">Dans l'Hérault ou à distance</li>
+        </ul>
+        <a class="btn btn--solid" href="#contact" data-intent-set="project" data-magnetic><span class="btn__label" data-i18n="fl.cta">Démarrer un projet</span></a>
       </div>
     </div>
   </section>
 
   <!-- ====================================================================
-       5. Stack
+       6. Stack
        ==================================================================== -->
-  <section class="section" id="stack">
+  <section class="section" id="stack" data-shape="dust" data-slot="screen">
     <div class="shell">
       <div class="section__head reveal" data-parallax="0.05">
         <div class="rule" aria-hidden="true"></div>
@@ -503,9 +631,9 @@
   </section>
 
   <!-- ====================================================================
-       6. Parcours
+       7. Parcours
        ==================================================================== -->
-  <section class="section" id="formation">
+  <section class="section" id="formation" data-shape="dust" data-slot="screen">
     <div class="shell">
       <div class="section__head reveal" data-parallax="0.05">
         <div class="rule" aria-hidden="true"></div>
@@ -564,23 +692,55 @@
   </section>
 
   <!-- ====================================================================
-       7. Contact
+       8. Contact : les particules ecrivent le prenom dans le bandeau du haut.
        ==================================================================== -->
-  <section class="section contact" id="contact">
-    <div class="shell">
-      <div class="reveal">
-        <div class="rule" aria-hidden="true"></div>
-        <h2 data-i18n="contact.title">Disponible pour un poste C++ embarqué.</h2>
-        <p class="lead" data-i18n="contact.lead">
-          Temps réel, vision, traitement du signal, sur un produit qui a de vraies contraintes
-          matérielles. Écrivez-moi, je réponds dans la journée.
+  <section class="section contact" id="contact" data-mode="project">
+    <div class="slot slot--sky" data-shape="name" aria-hidden="true"></div>
+    <div class="shell contact__grid">
+      <div class="contact__main">
+        <div class="intent" role="radiogroup" data-i18n-attr="aria-label:contact.intentLabel" aria-label="Votre demande">
+          <button type="button" role="radio" aria-checked="true" data-intent="project"
+                  data-subject="Projet freelance" data-i18n-attr="data-subject:contact.subjectProject">
+            <span data-i18n="contact.intentProject">J'ai un projet</span>
+          </button>
+          <button type="button" role="radio" aria-checked="false" tabindex="-1" data-intent="hire"
+                  data-subject="Poste de développeur C++" data-i18n-attr="data-subject:contact.subjectHire">
+            <span data-i18n="contact.intentHire">Je recrute</span>
+          </button>
+        </div>
+
+        <h2 class="contact__title">
+          <span class="for-project" data-i18n="contact.titleProject">Parlons de votre projet.</span>
+          <span class="for-hire" data-i18n="contact.titleHire">Parlons du poste.</span>
+        </h2>
+        <p class="lead for-project" data-i18n="contact.leadProject">
+          Quelques lignes suffisent pour commencer : le besoin, l'échéance, et ce qui existe déjà.
         </p>
+        <p class="lead for-hire" data-i18n="contact.leadHire">
+          Je cherche un poste en C++ embarqué : temps réel, vision ou traitement du signal,
+          sur un produit qui a de vraies contraintes matérielles.
+        </p>
+
+        <form class="compose" action="mailto:alexandresch01@hotmail.com" method="get">
+          <input type="hidden" name="subject" value="Projet freelance">
+          <label class="compose__lbl" for="msg" data-i18n="contact.msgLabel">Votre message</label>
+          <textarea id="msg" name="body" rows="5" aria-describedby="msg-help"></textarea>
+          <p class="compose__help" id="msg-help" data-i18n="contact.msgHelp">Il s'ouvrira dans votre messagerie, prêt à partir.</p>
+          <button class="btn btn--solid" type="submit" data-magnetic><span class="btn__label" data-i18n="contact.send">Écrire l'e-mail</span></button>
+        </form>
       </div>
 
-      <div class="ways reveal" style="--i:1">
+      <aside class="ways" data-i18n-attr="aria-label:contact.waysLabel" aria-label="Coordonnées">
         <div class="way">
           <p class="way__lbl" data-i18n="contact.email">Email</p>
-          <p class="way__val"><a class="link" href="mailto:alexandresch01@hotmail.com">alexandresch01@hotmail.com</a></p>
+          <p class="way__val">
+            <a class="link" href="mailto:alexandresch01@hotmail.com">alexandresch01@hotmail.com</a>
+            <button class="copybtn" type="button" data-copy="alexandresch01@hotmail.com">
+              <span class="copybtn__idle" data-i18n="contact.copy">Copier</span>
+              <span class="copybtn__done" data-i18n="contact.copied">Copié</span>
+            </button>
+          </p>
+          <p class="way__status sr-only" role="status" hidden data-i18n="contact.copiedStatus">Adresse copiée dans le presse-papiers</p>
         </div>
         <div class="way">
           <p class="way__lbl" data-i18n="contact.phone">Téléphone</p>
@@ -590,11 +750,13 @@
           <p class="way__lbl" data-i18n="contact.location">Localisation</p>
           <p class="way__val" data-i18n="contact.locationValue">Colombiers, Hérault. Mobile.</p>
         </div>
-      </div>
-
-      <div class="contact__cta reveal" style="--i:2">
-        <a class="btn btn--solid" href="mailto:alexandresch01@hotmail.com" data-i18n="contact.cta">Me contacter</a>
-      </div>
+        <div class="way">
+          <p class="way__lbl">CV</p>
+          <p class="way__val">
+            <a class="link" href="assets/cv-alexandre-schoukroun.pdf" download><span data-i18n="hero.ctaCv">Télécharger le CV</span> <span aria-hidden="true">&#8599;</span></a>
+          </p>
+        </div>
+      </aside>
     </div>
   </section>
 
@@ -602,11 +764,11 @@
 
 <footer>
   <div class="shell foot">
-    <p class="mono" data-i18n="foot.role">Alexandre Schoukroun, développeur C++ embarqué et temps réel</p>
-    <p class="mono">
+    <p class="mono" data-i18n="foot.role">Alexandre Schoukroun, développeur C++ embarqué et freelance</p>
+    <p class="mono foot__links">
       <a class="link" href="https://github.com/Alexandreschoukroun" target="_blank" rel="noopener">GitHub</a>
-      &nbsp;&nbsp;
       <a class="link" href="https://www.linkedin.com/in/alexandre-schoukroun-837411236/" target="_blank" rel="noopener">LinkedIn</a>
+      <a class="link" href="#main" data-i18n="foot.top">Haut de page</a>
     </p>
   </div>
 </footer>
@@ -616,7 +778,7 @@
   "@context": "https://schema.org",
   "@type": "Person",
   "name": "Alexandre Schoukroun",
-  "jobTitle": "Développeur C++ embarqué et temps réel",
+  "jobTitle": "Développeur C++ embarqué et temps réel, freelance",
   "email": "mailto:alexandresch01@hotmail.com",
   "telephone": "+33643525375",
   "address": { "@type": "PostalAddress", "addressLocality": "Colombiers", "addressRegion": "Hérault", "addressCountry": "FR" },
@@ -626,9 +788,14 @@
     "https://www.linkedin.com/in/alexandre-schoukroun-837411236/"
   ],
   "knowsLanguage": ["fr", "en"],
-  "knowsAbout": ["C++", "Systèmes embarqués", "Temps réel", "OpenCV", "ONNX", "Traitement du signal", "Qt", "Docker"],
+  "knowsAbout": ["C++", "Systèmes embarqués", "Temps réel", "OpenCV", "ONNX", "Traitement du signal", "Next.js", "Extensions Chrome"],
   "alumniOf": { "@type": "EducationalOrganization", "name": "EPSI Montpellier" },
-  "worksFor": { "@type": "Organization", "name": "Biodiv-Wind" }
+  "makesOffer": [
+    { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Applications web et SaaS" } },
+    { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Extensions Chrome" } },
+    { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "C++, vision et temps réel" } },
+    { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Intégration d'IA" } }
+  ]
 }
 </script>
 
