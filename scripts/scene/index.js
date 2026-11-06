@@ -33,11 +33,12 @@ const FOV = 30;
 const DIST = 10;
 const ROTOR_RUN = 1.5;
 
+// Chaque etat commence par la competence qu'il illustre.
 const HUD_FR = {
-  track: ['Suivi de trajectoire', '40 images/s'],
-  listen: ['Écoute ultrasonore', 'Signal filtré en continu'],
-  run: ['Turbine en production', 'Zone à risque surveillée'],
-  stop: ['Arrêt commandé', 'Rotor en décélération'],
+  track: ['Vision · suivi de cible', '40 images/s'],
+  listen: ['Signal · écoute ultrasonore', 'Filtrage en continu'],
+  run: ['Temps réel · turbine en marche', 'Zone à risque surveillée'],
+  stop: ['Temps réel · arrêt commandé', 'Rotor en décélération'],
 };
 
 const V_VOIR = viewMatrix(VIEW.voir);

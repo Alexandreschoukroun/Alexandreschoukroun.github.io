@@ -1,37 +1,39 @@
 /* ==========================================================================
    tokens.css
    Source unique de verite pour couleur, type, espace, profondeur.
-   Systeme : monochrome froid + UN accent (jaune haute-visibilite).
+   Systeme : bleu profond + UN accent (bleu electrique).
    Rayon de coin : 0 partout. Aucune exception.
    ========================================================================== */
 
 :root {
   color-scheme: dark;
 
-  /* --- Surfaces et texte (theme sombre, defaut) ------------------------- */
-  --ink-900: #090C0B;   /* fond de page */
-  --ink-800: #0E1312;   /* surface elevee */
-  --ink-700: #141B19;   /* surface pressee / champ */
-  --line:    #1E2724;   /* filet discret */
-  --line-2:  #2E3A35;   /* filet appuye */
+  /* --- Surfaces et texte (theme sombre, defaut) -------------------------
+     Le fond n'est pas noir : c'est un bleu nuit. Les surfaces et les filets
+     restent dans la meme teinte, seule la luminosite monte.               */
+  --ink-900: #050B1E;   /* fond de page */
+  --ink-800: #0A1430;   /* surface elevee */
+  --ink-700: #101C3E;   /* surface pressee / champ */
+  --line:    #1A2850;   /* filet discret */
+  --line-2:  #2A3B6B;   /* filet appuye */
 
-  --fg:      #E7EDE9;   /* texte primaire   16.55:1 sur ink-900 */
-  --fg-2:    #9AA7A1;   /* texte secondaire  7.87:1 */
-  --fg-3:    #6F7D77;   /* meta mono         4.56:1, le minimum qui tient AA */
+  --fg:      #E9EEFF;   /* texte primaire   16.90:1 sur ink-900 */
+  --fg-2:    #A0AED3;   /* texte secondaire  8.84:1 */
+  --fg-3:    #7886B0;   /* meta mono         5.44:1, 4.64:1 sur ink-700 */
 
   /* --- Accent unique, deux roles -----------------------------------------
-     Le jaune haute-visibilite est trop clair pour servir de couleur de texte
-     sur fond clair (1.29:1). Il reste donc toujours un APLAT, et un second
-     jeton porte le meme accent quand il faut ecrire avec.                  */
-  --accent:      #D8E021;  /* aplat : bouton, bande, filet, pastille */
-  --accent-ink:  #0A0D0C;  /* texte pose SUR l'aplat        13.58:1 */
-  --accent-text: #D8E021;  /* accent en TEXTE sur le fond   13.66:1 */
+     --accent est un APLAT (bouton, bande, filet, pastille), --accent-ink le
+     texte pose dessus. --accent-text porte le meme accent quand il faut
+     ecrire avec : un cran plus clair en sombre pour rester lisible en petit. */
+  --accent:      #5B8CFF;  /* aplat                         */
+  --accent-ink:  #050B1E;  /* texte pose SUR l'aplat   6.19:1 */
+  --accent-text: #7FA4FF;  /* accent en TEXTE sur le fond   8.07:1 */
 
   /* --- Scene 3D -----------------------------------------------------------
      Jamais lus par le CSS : scripts/scene/palette.js les recupere avec
      getComputedStyle. La scene suit ainsi le theme de la page.              */
-  --scene-particle: #BFCBC5;
-  --scene-accent:   #D8E021;
+  --scene-particle: #A9BBEA;
+  --scene-accent:   #6F9BFF;
 
   /* --- Typographie ------------------------------------------------------ */
   --sans: "Archivo", ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
@@ -77,26 +79,26 @@
   --z-grain:   60;
 }
 
-/* --- Theme clair ------------------------------------------------------- */
+/* --- Theme clair -------------------------------------------------------
+   Le bleu profond passe du fond a l'encre : texte bleu nuit, aplat bleu
+   roi avec du blanc dessus.                                              */
 :root[data-theme="light"] {
   color-scheme: light;
 
-  --ink-900: #F2F3EF;
-  --ink-800: #E8EAE3;
-  --ink-700: #DDE0D8;
-  --line:    #CBD0C6;
-  --line-2:  #AEB5A9;
+  --ink-900: #F3F6FC;
+  --ink-800: #E8EDF7;
+  --ink-700: #DCE3F1;
+  --line:    #C8D1E5;
+  --line-2:  #A7B3D0;
 
-  --fg:      #0F1412;   /* 16.69:1 */
-  --fg-2:    #4A534D;   /*  7.15:1 */
-  --fg-3:    #667069;   /*  4.61:1 */
+  --fg:      #08122E;   /* 17.07:1 */
+  --fg-2:    #3D4A73;   /*  8.00:1 */
+  --fg-3:    #55628B;   /*  5.53:1, 4.65:1 sur ink-700 */
 
-  /* L'aplat reste le meme jaune : c'est la signature, et du texte noir
-     dessus tient 13.58:1. Seule la variante ecrite est assombrie.          */
-  --accent:      #D8E021;
-  --accent-ink:  #0A0D0C;
-  --accent-text: #5E6600;  /* 5.58:1 sur le fond clair */
+  --accent:      #1F43D6;
+  --accent-ink:  #FFFFFF;  /* 7.41:1 */
+  --accent-text: #1F43D6;  /* 6.85:1 sur le fond clair */
 
-  --scene-particle: #26302B;
-  --scene-accent:   #6C7400;
+  --scene-particle: #14214D;
+  --scene-accent:   #1F43D6;
 }

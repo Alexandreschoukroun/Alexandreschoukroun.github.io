@@ -11,15 +11,15 @@ export const EN = {
   /* --- metadonnees ----------------------------------------------------- */
   'meta.title': 'Alexandre Schoukroun, embedded C++ developer and freelancer',
   'meta.description':
-    'Embedded and real-time C++ developer: vision, acoustics and radar for wildlife detection on wind farms. Freelance: web apps, SaaS, Chrome extensions, C++ and AI.',
+    'Embedded and real-time C++ developer: computer vision, signal processing and real-time systems, proven in the field. Freelance: web apps, e-commerce, SaaS, Chrome extensions, C++ and AI.',
   'meta.ogDescription':
-    'Three years building the wildlife detectors that stop wind turbines before impact. Available for a full-time role or freelance work.',
+    'Computer vision, signal processing and real-time C++, plus web products delivered end to end. Available for a full-time role or freelance work.',
 
   /* --- navigation ------------------------------------------------------- */
   'nav.skip': 'Skip to content',
-  'nav.system': 'System',
+  'nav.skills': 'Skills',
   'nav.experience': 'Experience',
-  'nav.products': 'Products',
+  'nav.projects': 'Projects',
   'nav.contact': 'Contact',
   'nav.availLong': 'Available for freelance',
   'nav.availShort': 'Freelance',
@@ -32,14 +32,14 @@ export const EN = {
     'Background animation: a cloud of particles that turns into a sensor, then a bird tracked above a radar, a spectrogram of bat calls, and finally a wind turbine that stops.',
   'track.bird': 'Bird detected',
   'track.path': 'Predicted path',
-  'hud.note': 'Detection chain, simulated',
-  'hud.track': 'Tracking',
+  'hud.note': 'Simulated demo',
+  'hud.track': 'Vision · target tracking',
   'hud.trackMetric': '40 frames/s',
-  'hud.listen': 'Ultrasonic listening',
-  'hud.listenMetric': 'Signal filtered continuously',
-  'hud.run': 'Turbine running',
+  'hud.listen': 'Signal · ultrasonic listening',
+  'hud.listenMetric': 'Filtered continuously',
+  'hud.run': 'Real time · turbine running',
   'hud.runMetric': 'Risk zone monitored',
-  'hud.stop': 'Stop commanded',
+  'hud.stop': 'Real time · stop commanded',
   'hud.stopMetric': 'Rotor spinning down',
 
   /* --- heros ------------------------------------------------------------ */
@@ -47,26 +47,33 @@ export const EN = {
   'hero.w2': 'hear,',
   'hero.w3': 'decide.',
   'hero.lead':
-    'Embedded and real-time C++ developer who also builds web products. Available for a full-time role or freelance work.',
+    'I teach machines to see, hear and decide: computer vision, signal processing, real-time C++. I also build web products, from idea to production. Full-time or freelance.',
   'hero.ctaContact': 'Get in touch',
   'hero.ctaCv': 'Download CV',
 
-  /* --- le systeme ------------------------------------------------------- */
-  'sys.manifesto':
-    'At Biodiv-Wind, sensors watch over wildlife around wind turbines. My code listens to them, tracks every target and stops the machine before impact.',
+  /* --- competences ----------------------------------------------------- */
+  'skills.manifesto':
+    'A camera, a microphone, a radar: mostly noise. My job is to pull the signal out of it, in real time, and turn it into reliable decisions.',
+  'skills.proof': 'In the field',
   'chap.verb1': 'See',
-  'sys.ch1Title': 'See.',
-  'sys.ch1Body':
-    'A camera spots the bird, a Kalman filter tracks its path and predicts the next one. Beyond camera range, the Furuno radar takes over.',
+  'skills.ch1Skill': 'Computer vision',
+  'skills.ch1Title': 'See.',
+  'skills.ch1Body':
+    'Spot a target in a video stream, follow it frame after frame and predict where it goes next. When the camera loses sight, another sensor takes over.',
+  'skills.fusion': 'Sensor fusion',
+  'skills.ch1Proof': 'Tracking birds in flight, with radar handover',
   'chap.verb2': 'Hear',
-  'sys.ch2Title': 'Hear.',
-  'sys.ch2Body':
-    'Bats hunt with ultrasound. AudioBat captures their calls, separates them from noise and classifies every pass, on hardware with tight resources.',
+  'skills.ch2Title': 'Hear.',
+  'skills.ch2Body':
+    'Capture a faint signal, separate it from the noise, extract a signature and classify it. Continuously, on hardware with tight resources.',
+  'skills.ultrasound': 'Ultrasound',
+  'skills.ch2Proof': 'Detecting bats by ultrasound',
   'chap.verb3': 'Decide',
-  'sys.ch3Title': 'Decide.',
-  'sys.ch3Body':
-    'When a path crosses the risk zone, the command goes out to the turbine, which slows down and stops. Around it, a C++ REST API and a web supervision interface.',
-  'sys.webUi': 'Web supervision',
+  'skills.ch3Skill': 'Real-time C++ and systems',
+  'skills.ch3Title': 'Decide.',
+  'skills.ch3Body':
+    'C++ that meets its deadlines: threads, measured latency, tests written first. Plus what makes it usable: REST API, web supervision, field deployment.',
+  'skills.ch3Proof': 'Stopping a wind turbine before impact',
 
   /* --- experience ------------------------------------------------------- */
   'xp.title': 'Three years on a product installed in the field.',
@@ -91,14 +98,20 @@ export const EN = {
   'xp.auchanBody':
     'Order preparation and stock management alongside my studies. Three years of paced work, reliability and direct customer contact.',
 
-  /* --- produits --------------------------------------------------------- */
-  'prod.title': 'What I run outside of work.',
+  /* --- projets --------------------------------------------------------- */
+  'prod.title': 'What I build outside of work.',
   'prod.lead':
-    'Three products I carry alone or with one partner, from code to production, with real users on the other end.',
+    'My own products and sites delivered for others, from code to production, with real users on the other end.',
   'prod.adscopeTag': 'SaaS, paying customers',
   'prod.adscopeBody':
     'Chrome extension and dashboard that turn the Facebook Ad Library into an analytics tool: ad spend estimation, Shopify store detection, hook analysis, CSV export. Freemium, English-speaking audience.',
   'prod.adscopeAlt': 'AdScope home page showing analysis of a Facebook Ad Library search',
+  'prod.cooklieTag': 'E-commerce, local artisan',
+  'prod.cooklieBody':
+    'The online shop of an artisan cookie bakery in Colombiers: product menu, build-your-own box, cart and customer accounts, local delivery or pickup, quote requests for events.',
+  'prod.cooklieMeta3': 'Customer accounts',
+  'prod.cooklieMeta4': 'Local delivery',
+  'prod.cooklieAlt': 'Cooklie home page: a hazelnut cookie and the headline One cookie, one bite of happiness',
   'prod.a2Tag': 'Web agency, co-founded',
   'prod.a2Body':
     'Websites, brand identity, local SEO and hosting for local businesses. The point is that a small outfit should exist online as well as a large one.',
@@ -125,7 +138,7 @@ export const EN = {
   'fl.o1Title': 'Web apps and SaaS',
   'fl.o1Body':
     'Accounts, Stripe payments, dashboards, APIs. Built with Next.js and Node.js, then deployed and monitored in production.',
-  'fl.o1Proof': 'Already in production: Adscope',
+  'fl.o1Proof': 'Already in production: Adscope, Cooklie',
   'fl.o2Title': 'Chrome extensions',
   'fl.o2Body':
     'A tool that plugs into the site your team already uses: reading the page, computing, exporting.',

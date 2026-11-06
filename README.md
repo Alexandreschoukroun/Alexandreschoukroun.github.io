@@ -12,17 +12,21 @@ sections. L'histoire va du bruit au signal.
 | Section | Forme | Ce qui bouge |
 |---|---|---|
 | Héros | un capteur sphérique | naît d'un nuage de bruit au chargement, une ligne de scan le parcourt, la souris écarte les particules |
-| Manifeste | poussière | la phrase s'allume mot à mot au défilement |
-| Voir | un oiseau au-dessus d'un radar | battement d'ailes, balayage radar, cadre de suivi HTML et trajectoire prédite |
-| Entendre | un spectrogramme 3D | des cris de chauve-souris (balayages en fréquence) défilent |
-| Décider | une éolienne et son parc | au premier tiers du chapitre la consigne part, une onde se propage, le rotor s'arrête |
-| Expérience, produits, stack, parcours | poussière | parallax au défilement, les points proches vont plus vite |
+| Compétences (manifeste) | poussière | la phrase s'allume mot à mot au défilement |
+| Voir (vision par ordinateur) | un oiseau au-dessus d'un radar | battement d'ailes, balayage radar, cadre de suivi HTML et trajectoire prédite |
+| Entendre (traitement du signal) | un spectrogramme 3D | des cris de chauve-souris (balayages en fréquence) défilent |
+| Décider (C++ temps réel) | une éolienne et son parc | au premier tiers du chapitre la consigne part, une onde se propage, le rotor s'arrête |
+| Expérience, projets, stack, parcours | poussière | parallax au défilement, les points proches vont plus vite |
 | Freelance | des blocs empilés | une vague de lumière monte dans la structure |
 | Contact | le prénom, écrit en points | un reflet le traverse |
 
 Le titre « Voir, entendre, décider. » sert de sommaire : au défilement, les
 trois mots s'écartent, puis chaque verbe a son chapitre, avec le verbe en
 contour géant qui traverse l'écran en parallax.
+
+Chaque chapitre présente une compétence, pas un produit : l'intitulé du
+savoir-faire au-dessus du verbe, ce qu'il permet de faire, les outils, et
+seulement en dernier une ligne « Sur le terrain » qui renvoie à l'expérience.
 
 ## Démarrer
 
@@ -105,7 +109,7 @@ scripts/
   fx/progress.js        variable --p de defilement, lue par le CSS
   fx/parallax.js        decalage des en-tetes de section
   fx/words.js           decoupe du manifeste en mots
-  fx/stack-cards.js     pile collee des cartes produit
+  fx/stack-cards.js     pile collee des cartes projet
   fx/marquee.js         bande freelance, pilotee par la vitesse
   fx/magnetic.js        boutons d'appel attires par le pointeur
   ui/contact.js         selecteur projet / recrutement, mail compose
@@ -214,29 +218,35 @@ la zone reellement cliquable.
 
 ## Contraste
 
-Les deux thèmes tiennent WCAG AA sur tout le texte. Le jaune haute-visibilité
-étant trop clair pour servir de couleur de texte sur fond clair (1,29:1), il
-reste toujours un aplat (`--accent`, avec `--accent-ink` par-dessus) et un
-second jeton porte l'accent quand il faut écrire (`--accent-text`).
+Palette : bleu profond et un seul accent, un bleu électrique. En sombre, le
+fond est un bleu nuit (`#050B1E`) et l'accent `#5B8CFF` ; en clair, le bleu
+profond passe à l'encre et l'aplat devient un bleu roi (`#1F43D6`) avec du
+blanc dessus.
+
+Les deux thèmes tiennent WCAG AA sur tout le texte. L'accent a deux jetons :
+un aplat (`--accent`, avec `--accent-ink` par-dessus) et une variante pour
+écrire (`--accent-text`), un cran plus claire en sombre pour rester lisible
+en petit.
 
 | | sombre | clair |
 |---|---|---|
-| texte principal | 16,55:1 | 16,69:1 |
-| texte secondaire | 7,87:1 | 7,15:1 |
-| méta mono | 4,56:1 | 4,61:1 |
-| accent en texte | 13,66:1 | 5,58:1 |
-| texte sur aplat accent | 13,58:1 | 13,58:1 |
+| texte principal | 16,90:1 | 17,07:1 |
+| texte secondaire | 8,84:1 | 8,00:1 |
+| méta mono | 5,44:1 | 5,53:1 |
+| méta mono sur champ | 4,64:1 | 4,65:1 |
+| accent en texte | 8,07:1 | 6,85:1 |
+| texte sur aplat accent | 6,19:1 | 7,41:1 |
 
 ## Images
 
-Les trois captures produit sont servies en WebP, redimensionnées à la largeur
+Les quatre captures projet sont servies en WebP, redimensionnées à la largeur
 réellement affichée. Les PNG d'origine restent dans `assets/img/source/` et ne
 sont pas servis. Pour régénérer après avoir remplacé une source :
 
 ```bash
 python - <<'EOF'
 from PIL import Image
-for name, w in {'adscope':1400, 'a2studio':900, 'immocoin':1100}.items():
+for name, w in {'adscope':1400, 'a2studio':900, 'immocoin':1100, 'cooklie':1100}.items():
     im = Image.open(f'assets/img/source/{name}.png').convert('RGB')
     if im.width > w: im = im.resize((w, round(im.height*w/im.width)), Image.LANCZOS)
     im.save(f'assets/img/{name}.webp', 'WEBP', quality=82, method=6)

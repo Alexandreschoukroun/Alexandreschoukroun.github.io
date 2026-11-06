@@ -190,7 +190,7 @@ if (langBtn) {
   });
   await new Promise((r) => setTimeout(r, 1500));
   const hud = await page.evaluate(() => document.getElementById('hud-state').textContent.trim());
-  check('le HUD est traduit', hud === 'Tracking', `"${hud}"`);
+  check('le HUD est traduit', hud === 'Vision · target tracking', `"${hud}"`);
   await page.evaluate(() => window.scrollTo(0, 0));
   await new Promise((r) => setTimeout(r, 600));
   const { EN } = await import('../scripts/i18n/en.js');
